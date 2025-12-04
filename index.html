@@ -703,10 +703,6 @@
                     <label>Providências/Encaminhamentos</label>
                     <textarea id="providencias" rows="3" placeholder="Recomendações e encaminhamentos necessários..."></textarea>
                 </div>
-                <div class="field">
-                    <label>Legislação Aplicável</label>
-                    <input type="text" id="legislacao" value="Lei Federal N° 12.608, de 10 de abril de 2012.">
-                </div>
             </div>
 
             <!-- Agente Responsável -->
@@ -739,7 +735,7 @@
                     </label>
                     <input type="file" id="photoInput" class="photo-input" accept="image/*" multiple capture="environment">
                     <div class="photo-preview" id="photoPreview"></div>
-                    <p class="photo-limit-info">As fotos aparecerão em páginas adicionais do PDF (4 fotos por página)</p>
+                    <p class="photo-limit-info">Imagens agrupadas em 2x6</p>
                 </div>
             </div>
         </form>
@@ -755,13 +751,15 @@
             </svg>
             Gerar Relatório PDF
         </button>
-        <button type="button" class="submit-btn print-btn" onclick="printPDF()">
+        <button type="button" class="submit-btn print-btn" onclick="sharePDF()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <polyline points="6 9 6 2 18 2 18 9"/>
-                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
-                <rect x="6" y="14" width="12" height="8"/>
+                <circle cx="18" cy="5" r="3"/>
+                <circle cx="6" cy="12" r="3"/>
+                <circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
             </svg>
-            Imprimir
+            Compartilhar
         </button>
     </div>
 
@@ -878,82 +876,165 @@
                 
                 const pageWidth = 210;
                 const pageHeight = 297;
-                const margin = 5;
+                const margin = 10;
                 const contentWidth = pageWidth - (margin * 2);
                 let y = margin;
 
                 // Cores
                 const orange = [232, 108, 40]; // #E86C28
-                const darkGray = [51, 51, 51];
+                const blue = [26, 35, 126]; // Azul escuro do exemplo
                 const lightGray = [245, 245, 245];
                 const borderColor = [200, 200, 200];
 
-                // Helper: Cabeçalho de seção laranja
+                // Helper: Cabeçalho de seção (igual ao site - título laranja com linha embaixo)
                 function drawSectionHeader(title, yPos) {
-                    doc.setFillColor(...orange);
-                    doc.rect(margin, yPos, contentWidth, 6, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(8);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(title, margin + 2, yPos + 4);
+                    doc.setTextColor(...orange);
+                    doc.text(title.toUpperCase(), margin + 2, yPos + 3);
+                    // Linha laranja embaixo
+                    doc.setDrawColor(...orange);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin + 2, yPos + 4, margin + contentWidth - 2, yPos + 4);
                     doc.setTextColor(0, 0, 0);
                     return yPos + 6;
                 }
 
-                // Helper: Desenhar checkbox
                 function drawCheckbox(x, yPos, label, checked, width = 38) {
-                    doc.setDrawColor(...borderColor);
-                    doc.setFillColor(255, 255, 255);
-                    doc.rect(x, yPos, width, 5, 'FD');
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(0, 0, 0);
+                    // Garantir que o checkbox não ultrapasse a margem direita
+                    const maxX = pageWidth - margin;
+                    const safeWidth = Math.min(width - 2, maxX - x - 2);
+                    
+                    if (safeWidth < 10) return; // Não desenhar se muito pequeno
+                    
+                    // Desenhar card com borda (laranja se selecionado, cinza se não)
+                    doc.setLineWidth(0.3);
+                    if (checked) {
+                        doc.setDrawColor(...orange);
+                        doc.setFillColor(255, 245, 240); // #fff5f0
+                    } else {
+                        doc.setDrawColor(224, 224, 224); // #e0e0e0
+                        doc.setFillColor(250, 250, 250); // #fafafa
+                    }
+                    doc.rect(x, yPos, safeWidth, 5, 'FD');
                     
                     // Checkbox square
-                    doc.rect(x + 1, yPos + 1, 3, 3, 'D');
+                    const checkboxX = x + 1.5;
+                    const checkboxY = yPos + 1;
                     if (checked) {
+                        // Quadrado laranja sólido
+                        doc.setFillColor(...orange);
+                        doc.setDrawColor(...orange);
+                        doc.rect(checkboxX, checkboxY, 3, 3, 'F');
+                        // Checkmark branco
                         doc.setFont('helvetica', 'bold');
-                        doc.text('X', x + 1.6, yPos + 3.5);
-                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(6);
+                        doc.setTextColor(255, 255, 255);
+                        doc.text('✓', checkboxX + 1.5, checkboxY + 2.3);
+                        doc.setTextColor(0, 0, 0);
+                    } else {
+                        // Quadrado vazio com borda preta
+                        doc.setDrawColor(0, 0, 0);
+                        doc.setLineWidth(0.2);
+                        doc.rect(checkboxX, checkboxY, 3, 3, 'D');
                     }
                     
-                    doc.text(label, x + 5.5, yPos + 3.5);
+                    // Texto do label - truncar se necessário
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    const maxTextWidth = safeWidth - 7;
+                    let displayLabel = label;
+                    while (doc.getTextWidth(displayLabel) > maxTextWidth && displayLabel.length > 3) {
+                        displayLabel = displayLabel.slice(0, -1);
+                    }
+                    if (displayLabel !== label) displayLabel += '..';
+                    doc.text(displayLabel, x + 5.5, yPos + 3.5);
                 }
 
-                // Helper: Desenhar célula com borda
-                function drawCell(x, yPos, width, height, content, bold = false) {
-                    doc.setDrawColor(...borderColor);
-                    doc.rect(x, yPos, width, height, 'D');
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-                    doc.text(content, x + 1, yPos + 3.5);
-                }
-
-                // ========== CABEÇALHO PRINCIPAL ==========
+                // ========== CABEÇALHO PRINCIPAL (igual ao exemplo com logos) ==========
+                const logo1Url = '/images/logo1.png';
+                const logo2Url = '/images/logo2.png';
+                
+                const headerHeight = 18;
+                const logoWidth = 16;
+                const logoHeight = 16;
+                
+                // Área do cabeçalho central (entre as logos)
+                const centerX = margin + logoWidth + 2;
+                const centerWidth = contentWidth - (logoWidth * 2) - 4;
+                
+                // Fundo laranja para "DEFESA CIVIL MUNICIPAL"
                 doc.setFillColor(...orange);
-                doc.rect(margin, y, contentWidth, 8, 'F');
+                doc.rect(centerX, y, centerWidth, 10, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('RELATÓRIO DE VISTORIA DE RISCO', pageWidth / 2, y + 5.5, { align: 'center' });
-                y += 8;
+                doc.text('DEFESA CIVIL MUNICIPAL', centerX + centerWidth / 2, y + 6.5, { align: 'center' });
+                
+                // Faixa azul para subtítulo
+                doc.setFillColor(...blue);
+                doc.rect(centerX, y + 10, centerWidth, 6, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(6);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Relatório Simplificado De Atendimento De Ocorrência', centerX + centerWidth / 2, y + 14, { align: 'center' });
+                
+                // Carregar e adicionar logos
+                try {
+                    const loadImage = (url) => {
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => resolve(img);
+                            img.onerror = reject;
+                            img.src = url;
+                        });
+                    };
+                    
+                    const [logo1, logo2] = await Promise.all([
+                        loadImage(logo1Url),
+                        loadImage(logo2Url)
+                    ]);
+                    
+                    // Logo SMSPT à esquerda
+                    doc.addImage(logo1, 'PNG', margin, y, logoWidth, logoHeight);
+                    // Logo Defesa Civil à direita
+                    doc.addImage(logo2, 'PNG', pageWidth - margin - logoWidth, y, logoWidth, logoHeight);
+                } catch (e) {
+                    console.log('Erro ao carregar logos:', e);
+                }
+                
+                y += headerHeight;
 
-                // ========== DATA / N° / HORÁRIO ==========
+                // ========== IDENTIFICAÇÃO (igual ao site - seção com título) ==========
+                y += 2;
+                y = drawSectionHeader('IDENTIFICAÇÃO', y);
+                
                 const data = formatDate(document.getElementById('data').value);
                 const numero = document.getElementById('numero').value;
                 const horario = document.getElementById('horario').value;
 
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
+                // Campos sem bordas, apenas texto (igual ao site)
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0);
+                doc.text('Data:', margin + 2, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(data, margin + 15, y + 3.5);
                 
-                const headerCellW = contentWidth / 3;
-                drawCell(margin, y, headerCellW, 6, `DATA: ${data}`, true);
-                drawCell(margin + headerCellW, y, headerCellW, 6, `N°: ${numero}`, true);
-                drawCell(margin + headerCellW * 2, y, headerCellW, 6, `HORÁRIO: ${horario}`, true);
+                doc.setFont('helvetica', 'bold');
+                doc.text('N°:', margin + contentWidth / 3, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(numero, margin + contentWidth / 3 + 10, y + 3.5);
+                
+                doc.setFont('helvetica', 'bold');
+                doc.text('Horário:', margin + (contentWidth * 2 / 3), y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(horario, margin + (contentWidth * 2 / 3) + 18, y + 3.5);
                 y += 6;
 
                 // ========== DEMANDA ==========
+                y += 2;
                 y = drawSectionHeader('DEMANDA', y);
                 
                 const demandas = getCheckedValues('demanda');
@@ -965,14 +1046,16 @@
                     ['PGM', 'Outros']
                 ];
                 
-                const demandaCellW = contentWidth / 2;
+                const demandaGap = 4;
+                const demandaCellW = (contentWidth - demandaGap) / 2;
                 demandaOpts.forEach(row => {
                     drawCheckbox(margin, y, row[0], demandas.includes(row[0]), demandaCellW);
-                    drawCheckbox(margin + demandaCellW, y, row[1], demandas.includes(row[1]), demandaCellW);
-                    y += 5;
+                    drawCheckbox(margin + demandaCellW + demandaGap, y, row[1], demandas.includes(row[1]), demandaCellW);
+                    y += 6;
                 });
 
                 // ========== SOLICITAÇÃO ==========
+                y += 2;
                 y = drawSectionHeader('SOLICITAÇÃO', y);
                 
                 const solNome = document.getElementById('solicitanteNome').value;
@@ -985,189 +1068,302 @@
                 const bairro = document.getElementById('bairro').value;
 
                 // Linha 1: Nome e Telefone
-                doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth * 0.6, 6, 'D');
-                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.4, 6, 'D');
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Nome:', margin + 1, y + 2.5);
+                doc.text('Nome:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solNome, margin + 12, y + 2.5);
+                doc.text(solNome, margin + 16, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Telefone:', margin + contentWidth * 0.6 + 1, y + 2.5);
+                doc.text('Telefone:', margin + contentWidth * 0.6, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solTel, margin + contentWidth * 0.6 + 18, y + 2.5);
+                doc.text(solTel, margin + contentWidth * 0.6 + 20, y + 3.5);
+                y += 5;
                 
-                // Checkboxes do tipo de solicitante na mesma linha
-                const tipoX = margin + contentWidth * 0.6 + 1;
-                doc.rect(tipoX, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Proprietário/Morador') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 0.7, y + 5.5); }
+                const tipoGap = 3;
+                const tipoCardW = (contentWidth - tipoGap * 2) / 3;
+                const tipoCardH = 5;
+                
+                // Prop./Morador
+                if (tipoSol === 'Proprietário/Morador') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(margin, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(margin + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Proprietário/Morador') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(margin + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.setFontSize(6);
                 doc.setFont('helvetica', 'normal');
-                doc.setFontSize(5);
-                doc.text('Prop./Morador', tipoX + 3.5, y + 5.5);
+                doc.text('Prop./Morador', margin + 6, y + 3.3);
                 
-                doc.rect(tipoX + 23, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX + 23, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Responsável') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 23.7, y + 5.5); }
-                doc.setFont('helvetica', 'normal');
-                doc.text('Responsável', tipoX + 26.5, y + 5.5);
+                // Responsável
+                const respX = margin + tipoCardW + tipoGap;
+                if (tipoSol === 'Responsável') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(respX, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(respX + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Responsável') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(respX + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.text('Responsável', respX + 6, y + 3.3);
                 
-                doc.rect(tipoX + 45, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX + 45, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Outro') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 45.7, y + 5.5); }
-                doc.setFont('helvetica', 'normal');
-                doc.text('Outro', tipoX + 48.5, y + 5.5);
+                // Outro
+                const outroX = margin + (tipoCardW + tipoGap) * 2;
+                if (tipoSol === 'Outro') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(outroX, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(outroX + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Outro') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(outroX + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.text('Outro', outroX + 6, y + 3.3);
                 
-                y += 6;
+                y += tipoCardH + 2;
 
                 // Linha 2: E-mail
                 doc.setFontSize(7);
-                doc.rect(margin, y, contentWidth, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('E-mail:', margin + 1, y + 3.5);
+                doc.text('E-mail:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solEmail, margin + 14, y + 3.5);
+                doc.text(solEmail, margin + 16, y + 3.5);
                 y += 5;
 
                 // Linha 3: Endereço, Qd, Lote
-                doc.rect(margin, y, contentWidth * 0.6, 5, 'D');
-                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.2, 5, 'D');
-                doc.rect(margin + contentWidth * 0.8, y, contentWidth * 0.2, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('Endereço:', margin + 1, y + 3.5);
+                doc.text('Endereço:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(endereco, margin + 18, y + 3.5);
+                doc.text(endereco, margin + 22, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Qd:', margin + contentWidth * 0.6 + 1, y + 3.5);
+                doc.text('Qd:', margin + contentWidth * 0.65, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(quadra, margin + contentWidth * 0.6 + 8, y + 3.5);
+                doc.text(quadra, margin + contentWidth * 0.65 + 10, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Lote:', margin + contentWidth * 0.8 + 1, y + 3.5);
+                doc.text('Lote:', margin + contentWidth * 0.82, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(lote, margin + contentWidth * 0.8 + 10, y + 3.5);
+                doc.text(lote, margin + contentWidth * 0.82 + 12, y + 3.5);
                 y += 5;
 
                 // Linha 4: Bairro
-                doc.rect(margin, y, contentWidth, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('Bairro:', margin + 1, y + 3.5);
+                doc.text('Bairro:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(bairro, margin + 14, y + 3.5);
+                doc.text(bairro, margin + 16, y + 3.5);
                 y += 5;
 
                 // ========== TIPO DE OCORRÊNCIA ==========
+                y += 2;
                 y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
                 
                 const ocorrencias = getCheckedValues('tipoOcorrencia');
-                const ocorrCellW = contentWidth / 4;
+                const ocorrGap = 3;
+                const ocorrCellW = (contentWidth - ocorrGap * 3) / 4;
                 ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'].forEach((opt, i) => {
-                    drawCheckbox(margin + i * ocorrCellW, y, opt, ocorrencias.includes(opt), ocorrCellW);
+                    drawCheckbox(margin + i * (ocorrCellW + ocorrGap), y, opt, ocorrencias.includes(opt), ocorrCellW);
                 });
-                y += 5;
+                y += 6;
 
                 // ========== DESCRIÇÃO DA EDIFICAÇÃO ==========
+                y += 2;
                 y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
                 
-                // Tipo de Edificação
                 doc.setFontSize(6);
                 doc.setFont('helvetica', 'bold');
-                doc.text('TIPO DE EDIFICAÇÃO', margin + 1, y + 3);
+                doc.text('TIPO DE EDIFICAÇÃO', margin + 2, y + 3);
                 const tiposEdif = getCheckedValues('tipoEdificacao');
-                const edifCellW = (contentWidth - 40) / 4;
+                const edifGap = 2;
+                const edifCellW = (contentWidth - edifGap * 3) / 4;
                 ['Residencial', 'Comercial', 'Pública', 'Outras'].forEach((opt, i) => {
-                    drawCheckbox(margin + 40 + i * edifCellW, y, opt, tiposEdif.includes(opt), edifCellW);
+                    drawCheckbox(margin + i * (edifCellW + edifGap), y + 4, opt, tiposEdif.includes(opt), edifCellW);
                 });
-                y += 5;
+                y += 10;
 
-                // Estrutura
                 doc.setFont('helvetica', 'bold');
-                doc.text('ESTRUTURA', margin + 1, y + 3);
+                doc.text('ESTRUTURA', margin + 2, y + 3);
                 const estruturas = getCheckedValues('estrutura');
-                const estrutCellW = (contentWidth - 25) / 6;
                 const estrutOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
                 const estrutLabels = ['Alv. e concreto', 'Só alvenaria', 'Estr. metálica', 'Madeira/palafita', 'Conc. armado', 'Outros'];
-                estrutLabels.forEach((label, i) => {
-                    drawCheckbox(margin + 25 + i * estrutCellW, y, label, estruturas.includes(estrutOpts[i]), estrutCellW);
+                const estrutGap = 2;
+                const estrutCellW = (contentWidth - estrutGap * 2) / 3;
+                // Primeira linha (3 itens)
+                estrutLabels.slice(0, 3).forEach((label, i) => {
+                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y + 4, label, estruturas.includes(estrutOpts[i]), estrutCellW);
                 });
-                y += 5;
+                y += 10;
+                // Segunda linha (3 itens)
+                estrutLabels.slice(3, 6).forEach((label, i) => {
+                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y, label, estruturas.includes(estrutOpts[i + 3]), estrutCellW);
+                });
+                y += 6;
 
-                // Tipo de Cobertura
                 doc.setFont('helvetica', 'bold');
-                doc.text('TIPO DE COBERTURA', margin + 1, y + 3);
+                doc.text('TIPO DE COBERTURA', margin + 2, y + 3);
                 const coberturas = getCheckedValues('cobertura');
-                const cobCellW = (contentWidth - 45) / 4;
+                const cobGap = 2;
+                const cobCellW = (contentWidth - cobGap * 3) / 4;
                 ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'].forEach((opt, i) => {
-                    drawCheckbox(margin + 45 + i * cobCellW, y, opt, coberturas.includes(opt), cobCellW);
+                    drawCheckbox(margin + i * (cobCellW + cobGap), y + 4, opt, coberturas.includes(opt), cobCellW);
                 });
-                y += 5;
+                y += 10;
 
                 // ========== MANIFESTAÇÕES PATOLÓGICAS ==========
+                y += 2;
                 y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
                 
                 const patologias = getCheckedValues('patologia');
                 const patOpts = [
-                    ['Trincas e fissuras', 'Corrosão de ferragens', 'Inclinação/recalques'],
-                    ['Infiltração', 'Deterioração de estruturas', 'Esquadria(s) emperrada(s)'],
-                    ['Desprendimento de revestimento', 'Outras', '']
+                    ['Trincas e fissuras', 'Corrosão de ferragens'],
+                    ['Inclinação/recalques', 'Infiltração'],
+                    ['Deterioração de estruturas', 'Esquadria(s) emperrada(s)'],
+                    ['Desprendimento de revestimento', 'Outras']
                 ];
-                const patCellW = contentWidth / 3;
+                const patGap = 4;
+                const patCellW = (contentWidth - patGap) / 2;
                 patOpts.forEach(row => {
                     row.forEach((opt, i) => {
-                        if (opt) drawCheckbox(margin + i * patCellW, y, opt, patologias.includes(opt), patCellW);
+                        if (opt) drawCheckbox(margin + i * (patCellW + patGap), y, opt, patologias.includes(opt), patCellW);
                     });
-                    y += 5;
+                    y += 6;
                 });
 
                 // ========== LOCALIZAÇÃO DAS ANOMALIAS ==========
+                y += 2;
                 y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS VERIFICADAS', y);
                 
                 const localizacoes = getCheckedValues('localizacao');
-                const locCellW = contentWidth / 5;
-                ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'].forEach((opt, i) => {
-                    drawCheckbox(margin + i * locCellW, y, opt, localizacoes.includes(opt), locCellW);
+                const locGap = 3;
+                const locCellW = (contentWidth - locGap * 2) / 3;
+                const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
+                // Primeira linha
+                locOpts.slice(0, 3).forEach((opt, i) => {
+                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
                 });
-                y += 5;
+                y += 6;
+                // Segunda linha
+                locOpts.slice(3, 5).forEach((opt, i) => {
+                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
+                });
+                y += 6;
 
                 // ========== RELATÓRIO DE VISTORIA ==========
+                y += 2;
                 y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
                 
                 const relatorio = document.getElementById('relatorio').value;
+                const providencias = document.getElementById('providencias').value;
+                
+                const espacoAssinatura = 20;
+                const espacoRestante = pageHeight - y - margin - espacoAssinatura;
+                
+                // Dividir espaço entre Relatório e Providências proporcionalmente
+                // Se ambos têm conteúdo, dividir igualmente; senão, dar mais espaço para quem tem
+                const relatorioTemConteudo = relatorio && relatorio.trim().length > 0;
+                const providenciasTemConteudo = providencias && providencias.trim().length > 0;
+                
+                let alturaRelatorio, alturaProvidencias;
+                const espacoParaCampos = espacoRestante - 12; // 12mm para headers e gaps
+                
+                if (relatorioTemConteudo && providenciasTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.5;
+                    alturaProvidencias = espacoParaCampos * 0.5;
+                } else if (relatorioTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.65;
+                    alturaProvidencias = espacoParaCampos * 0.35;
+                } else if (providenciasTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.35;
+                    alturaProvidencias = espacoParaCampos * 0.65;
+                } else {
+                    alturaRelatorio = espacoParaCampos * 0.5;
+                    alturaProvidencias = espacoParaCampos * 0.5;
+                }
+                
+                // Garantir alturas mínimas
+                alturaRelatorio = Math.max(alturaRelatorio, 12);
+                alturaProvidencias = Math.max(alturaProvidencias, 12);
+                
+                let fontSizeTexto = 7;
+                const linhaAltura = 3.5;
+                
+                // Testar se o conteúdo cabe com fonte 7
+                doc.setFontSize(fontSizeTexto);
+                let relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
+                let maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / linhaAltura);
+                
+                // Se não cabe, reduzir fonte
+                if (relatorioLines.length > maxLinhasRelatorio && relatorioTemConteudo) {
+                    fontSizeTexto = 6;
+                    doc.setFontSize(fontSizeTexto);
+                    relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
+                    maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / 3);
+                }
+                
                 doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth, 35, 'D');
-                doc.setFontSize(7);
+                doc.rect(margin, y, contentWidth, alturaRelatorio, 'D');
+                doc.setFontSize(fontSizeTexto);
                 doc.setFont('helvetica', 'normal');
-                const relatorioLines = doc.splitTextToSize(relatorio, contentWidth - 4);
                 let relY = y + 4;
-                relatorioLines.slice(0, 10).forEach(line => {
+                const linhaAlturaAjustada = fontSizeTexto === 6 ? 3 : 3.5;
+                relatorioLines.slice(0, maxLinhasRelatorio).forEach(line => {
                     doc.text(line, margin + 2, relY);
-                    relY += 3.5;
+                    relY += linhaAlturaAjustada;
                 });
-                y += 35;
+                y += alturaRelatorio;
 
                 // ========== PROVIDÊNCIAS ==========
+                y += 2;
                 y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
                 
-                const providencias = document.getElementById('providencias').value;
-                doc.rect(margin, y, contentWidth, 18, 'D');
-                const provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
-                let provY = y + 4;
-                provLines.slice(0, 5).forEach(line => {
-                    doc.text(line, margin + 2, provY);
-                    provY += 3.5;
-                });
-                y += 18;
-
-                // ========== LEGISLAÇÃO ==========
-                doc.rect(margin, y, contentWidth, 5, 'D');
-                doc.setFont('helvetica', 'bold');
-                doc.text('Legislação:', margin + 1, y + 3.5);
+                doc.setFontSize(fontSizeTexto);
+                let provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
+                let maxLinhasProv = Math.floor((alturaProvidencias - 4) / linhaAlturaAjustada);
+                
+                // Se não cabe, reduzir fonte ainda mais
+                if (provLines.length > maxLinhasProv && providenciasTemConteudo && fontSizeTexto > 5) {
+                    fontSizeTexto = 5;
+                    doc.setFontSize(fontSizeTexto);
+                    provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
+                    maxLinhasProv = Math.floor((alturaProvidencias - 4) / 2.5);
+                }
+                
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth, alturaProvidencias, 'D');
+                doc.setFontSize(fontSizeTexto);
                 doc.setFont('helvetica', 'normal');
-                doc.text(document.getElementById('legislacao').value, margin + 20, y + 3.5);
-                y += 5;
+                let provY = y + 4;
+                const linhaAlturaFinal = fontSizeTexto === 5 ? 2.5 : linhaAlturaAjustada;
+                provLines.slice(0, maxLinhasProv).forEach(line => {
+                    doc.text(line, margin + 2, provY);
+                    provY += linhaAlturaFinal;
+                });
+                y += alturaProvidencias;
 
                 // ========== ASSINATURA ==========
-                y += 5;
+                y += 3;
                 
                 const cidade = 'Cidade Ocidental';
                 const dataExtenso = new Date(document.getElementById('data').value + 'T12:00:00')
@@ -1176,17 +1372,18 @@
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'normal');
                 doc.text(`${cidade}, ${dataExtenso}`, margin + 2, y);
-                y += 15;
+                y += 8;
 
                 // Linha de assinatura
                 doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.5);
                 doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
                 y += 4;
                 
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
                 doc.text(document.getElementById('agenteNome').value, pageWidth / 2, y, { align: 'center' });
-                y += 4;
+                y += 3;
                 
                 doc.setFont('helvetica', 'normal');
                 doc.setFontSize(7);
@@ -1194,94 +1391,88 @@
                 y += 3;
                 doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
 
- // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========  
-if (photos.length > 0) {
+                // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========  
+                if (photos.length > 0) {
+                    const cols = 2;
+                    const rows = 6;
+                    const photosPerPage = cols * rows;
 
-    // CONFIGURAÇÃO DA GRADE 2x6
-    const cols = 2;
-    const rows = 6;
-    const photosPerPage = cols * rows; // 12 por página
+                    const imgGap = 5;
+                    const imgWidth = (contentWidth - imgGap) / cols;
+                    const imgHeight = imgWidth * 0.75;
 
-    const imgWidth = (contentWidth - 10) / cols;  // largura proporcional
-    const imgHeight = imgWidth * 0.75;            // ajuste para manter proporção
-    const imgMargin = 5;
+                    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
 
-    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
+                    for (let page = 0; page < totalPhotoPages; page++) {
+                        doc.addPage();
+                        y = margin;
 
-    for (let page = 0; page < totalPhotoPages; page++) {
-        doc.addPage();
-        y = margin;
+                        // Cabeçalho laranja
+                        doc.setFillColor(...orange);
+                        doc.rect(margin, y, contentWidth, 8, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(11);
+                        doc.setFont('helvetica', 'bold');
+                        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
+                        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
+                        y += 12;
 
-        // Cabeçalho laranja
-        doc.setFillColor(...orange);
-        doc.rect(margin, y, contentWidth, 8, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'bold');
-        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
-        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
-        y += 12;
+                        doc.setTextColor(0, 0, 0);
 
-        doc.setTextColor(0, 0, 0);
+                        const startIdx = page * photosPerPage;
+                        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
 
-        // Fotos desta página
-        const startIdx = page * photosPerPage;
-        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
+                        for (let i = startIdx; i < endIdx; i++) {
+                            const pagePos = i - startIdx;
+                            const col = pagePos % cols;
+                            const row = Math.floor(pagePos / cols);
 
-        for (let i = startIdx; i < endIdx; i++) {
+                            const x = margin + col * (imgWidth + imgGap);
+                            const yPos = y + row * (imgHeight + 18);
 
-            const pagePos = i - startIdx;
+                            const photoNum = i + 1;
 
-            const col = pagePos % cols;
-            const row = Math.floor(pagePos / cols);
+                            // Título
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
 
-            const x = margin + col * (imgWidth + imgMargin);
-            const yPos = y + row * (imgHeight + 22);
+                            // Borda
+                            doc.setDrawColor(...orange);
+                            doc.setLineWidth(0.5);
+                            doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
 
-            const photoNum = i + 1;
+                            // Foto
+                            try {
+                                doc.addImage(
+                                    photos[i].data,
+                                    'JPEG',
+                                    x + 1,
+                                    yPos + 4,
+                                    imgWidth - 2,
+                                    imgHeight - 2
+                                );
+                            } catch (e) {
+                                console.error('Erro ao adicionar imagem:', e);
+                            }
 
-            // Título
-            doc.setFontSize(9);
-            doc.setFont('helvetica', 'bold');
-            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
-
-            // Borda
-            doc.setDrawColor(...orange);
-            doc.setLineWidth(0.5);
-            doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
-
-            // Foto
-            try {
-                doc.addImage(
-                    photos[i].data,
-                    'JPEG',
-                    x + 1,
-                    yPos + 4,
-                    imgWidth - 2,
-                    imgHeight - 2
-                );
-            } catch (e) {
-                console.error('Erro ao adicionar imagem:', e);
-            }
-
-            // Descrição
-            if (photos[i].description) {
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'italic');
-                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
-                doc.text(descLines[0] || '', x + imgWidth / 2, yPos + imgHeight + 7, { align: 'center' });
-            }
-        }
-    }
-}
-
-
+                            // Descrição
+                            if (photos[i].description) {
+                                doc.setFontSize(6);
+                                doc.setFont('helvetica', 'italic');
+                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth - 4);
+                                doc.text(descLines[0] || '', x + imgWidth / 2, yPos + imgHeight + 6, { align: 'center' });
+                            }
+                        }
+                    }
+                }
 
                 // Salvar PDF
                 const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
                 doc.save(fileName);
                 
                 showToast('PDF gerado com sucesso!', 'success');
+                return doc;
             } catch (error) {
                 console.error('Erro ao gerar PDF:', error);
                 showToast('Erro ao gerar PDF. Tente novamente.', 'error');
@@ -1290,7 +1481,7 @@ if (photos.length > 0) {
             }
         }
 
-        async function printPDF() {
+        async function sharePDF() {
             const form = document.getElementById('reportForm');
             if (!form.checkValidity()) {
                 form.reportValidity();
@@ -1306,277 +1497,485 @@ if (photos.length > 0) {
                 
                 const pageWidth = 210;
                 const pageHeight = 297;
-                const margin = 5;
+                const margin = 10;
                 const contentWidth = pageWidth - (margin * 2);
                 let y = margin;
 
-                // Cores
                 const orange = [232, 108, 40];
+                const blue = [26, 35, 126];
                 const borderColor = [200, 200, 200];
 
-                // Helper functions (mesmas do generatePDF)
                 function drawSectionHeader(title, yPos) {
-                    doc.setFillColor(...orange);
-                    doc.rect(margin, yPos, contentWidth, 6, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(8);
+                    doc.setFontSize(7);
                     doc.setFont('helvetica', 'bold');
-                    doc.text(title, margin + 2, yPos + 4);
+                    doc.setTextColor(...orange);
+                    doc.text(title.toUpperCase(), margin + 2, yPos + 3);
+                    doc.setDrawColor(...orange);
+                    doc.setLineWidth(0.5);
+                    doc.line(margin + 2, yPos + 4, margin + contentWidth - 2, yPos + 4);
                     doc.setTextColor(0, 0, 0);
                     return yPos + 6;
                 }
 
                 function drawCheckbox(x, yPos, label, checked, width = 38) {
-                    doc.setDrawColor(...borderColor);
-                    doc.setFillColor(255, 255, 255);
-                    doc.rect(x, yPos, width, 5, 'FD');
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    doc.rect(x + 1, yPos + 1, 3, 3, 'D');
+                    const maxX = pageWidth - margin;
+                    const safeWidth = Math.min(width - 2, maxX - x - 2);
+                    
+                    if (safeWidth < 10) return;
+                    
+                    doc.setLineWidth(0.3);
                     if (checked) {
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('X', x + 1.6, yPos + 3.5);
-                        doc.setFont('helvetica', 'normal');
+                        doc.setDrawColor(...orange);
+                        doc.setFillColor(255, 245, 240);
+                    } else {
+                        doc.setDrawColor(224, 224, 224);
+                        doc.setFillColor(250, 250, 250);
                     }
-                    doc.text(label, x + 5.5, yPos + 3.5);
+                    doc.rect(x, yPos, safeWidth, 5, 'FD');
+                    
+                    const checkboxX = x + 1.5;
+                    const checkboxY = yPos + 1;
+                    if (checked) {
+                        doc.setFillColor(...orange);
+                        doc.setDrawColor(...orange);
+                        doc.rect(checkboxX, checkboxY, 3, 3, 'F');
+                        doc.setFont('helvetica', 'bold');
+                        doc.setFontSize(6);
+                        doc.setTextColor(255, 255, 255);
+                        doc.text('✓', checkboxX + 1.5, checkboxY + 2.3);
+                        doc.setTextColor(0, 0, 0);
+                    } else {
+                        doc.setDrawColor(0, 0, 0);
+                        doc.setLineWidth(0.2);
+                        doc.rect(checkboxX, checkboxY, 3, 3, 'D');
+                    }
+                    
+                    doc.setFontSize(6);
+                    doc.setFont('helvetica', 'normal');
+                    const maxTextWidth = safeWidth - 7;
+                    let displayLabel = label;
+                    while (doc.getTextWidth(displayLabel) > maxTextWidth && displayLabel.length > 3) {
+                        displayLabel = displayLabel.slice(0, -1);
+                    }
+                    if (displayLabel !== label) displayLabel += '..';
+                    doc.text(displayLabel, x + 5.5, yPos + 3.5);
                 }
 
-                function drawCell(x, yPos, width, height, content, bold = false) {
-                    doc.setDrawColor(...borderColor);
-                    doc.rect(x, yPos, width, height, 'D');
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', bold ? 'bold' : 'normal');
-                    doc.text(content, x + 1, yPos + 3.5);
-                }
-
-                // Obter valores do formulário
-                const data = document.getElementById('data').value;
+                // Dados do formulário
+                const data = formatDate(document.getElementById('data').value);
                 const numero = document.getElementById('numero').value;
                 const horario = document.getElementById('horario').value;
-                const demandaValues = getCheckedValues('demanda');
+                const demandas = getCheckedValues('demanda');
                 const solNome = document.getElementById('solicitanteNome').value;
-                const solTel = document.getElementById('solicitanteTelefone').value;
+                const solTel = document.getElementById('solicitanteTelefone').value || '';
                 const tipoSol = getRadioValue('tipoSolicitante');
-                const solEmail = document.getElementById('solicitanteEmail').value;
+                const solEmail = document.getElementById('solicitanteEmail').value || '';
                 const endereco = document.getElementById('endereco').value;
-                const quadra = document.getElementById('quadra').value;
-                const lote = document.getElementById('lote').value;
+                const quadra = document.getElementById('quadra').value || '';
+                const lote = document.getElementById('lote').value || '';
                 const bairro = document.getElementById('bairro').value;
-                const ocorrenciaValues = getCheckedValues('tipoOcorrencia');
-                const tipoEdifValues = getCheckedValues('tipoEdificacao');
-                const estruturaValues = getCheckedValues('estrutura');
-                const coberturaValues = getCheckedValues('cobertura');
-                const patologiaValues = getCheckedValues('patologia');
-                const localizacaoValues = getCheckedValues('localizacao');
+                const ocorrencias = getCheckedValues('tipoOcorrencia');
+                const tiposEdif = getCheckedValues('tipoEdificacao');
+                const estruturas = getCheckedValues('estrutura');
+                const coberturas = getCheckedValues('cobertura');
+                const patologias = getCheckedValues('patologia');
+                const localizacoes = getCheckedValues('localizacao');
                 const relatorio = document.getElementById('relatorio').value;
                 const providencias = document.getElementById('providencias').value;
-                const agenteNome = document.getElementById('agenteNome').value;
-                const agenteCargo = document.getElementById('agenteCargo').value;
-                const agenteDecreto = document.getElementById('agenteDecreto').value;
 
-                // === CABEÇALHO PRINCIPAL ===
+                // CABEÇALHO
+                const logo1Url = '/images/logo1.png';
+                const logo2Url = '/images/logo2.png';
+                
+                const headerHeight = 18;
+                const logoWidth = 16;
+                const logoHeight = 16;
+                
+                const centerX = margin + logoWidth + 2;
+                const centerWidth = contentWidth - (logoWidth * 2) - 4;
+                
                 doc.setFillColor(...orange);
-                doc.rect(margin, y, contentWidth, 8, 'F');
+                doc.rect(centerX, y, centerWidth, 10, 'F');
                 doc.setTextColor(255, 255, 255);
-                doc.setFontSize(11);
+                doc.setFontSize(10);
                 doc.setFont('helvetica', 'bold');
-                doc.text('RELATÓRIO DE VISTORIA DE RISCO', pageWidth / 2, y + 5.5, { align: 'center' });
-                y += 10;
+                doc.text('DEFESA CIVIL MUNICIPAL', centerX + centerWidth / 2, y + 6.5, { align: 'center' });
+                
+                doc.setFillColor(...blue);
+                doc.rect(centerX, y + 10, centerWidth, 6, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(6);
+                doc.setFont('helvetica', 'normal');
+                doc.text('Relatório Simplificado De Atendimento De Ocorrência', centerX + centerWidth / 2, y + 14, { align: 'center' });
+                
+                try {
+                    const loadImage = (url) => {
+                        return new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.onload = () => resolve(img);
+                            img.onerror = reject;
+                            img.src = url;
+                        });
+                    };
+                    
+                    const [logo1, logo2] = await Promise.all([
+                        loadImage(logo1Url),
+                        loadImage(logo2Url)
+                    ]);
+                    
+                    doc.addImage(logo1, 'PNG', margin, y, logoWidth, logoHeight);
+                    doc.addImage(logo2, 'PNG', pageWidth - margin - logoWidth, y, logoWidth, logoHeight);
+                } catch (e) {
+                    console.log('Erro ao carregar logos:', e);
+                }
+                
+                y += headerHeight;
 
-                // Data, Nº, Horário
-                doc.setTextColor(0, 0, 0);
-                doc.setFontSize(8);
+                // IDENTIFICAÇÃO
+                y += 2;
+                y = drawSectionHeader('IDENTIFICAÇÃO', y);
+                doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
-                doc.text(`DATA: ${formatDate(data)}`, margin + 2, y + 3);
-                doc.text(`Nº: ${numero}`, margin + 80, y + 3);
-                doc.text(`HORÁRIO: ${horario}`, margin + 150, y + 3);
+                doc.setTextColor(0, 0, 0);
+                doc.text('Data:', margin + 2, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(data, margin + 15, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('N°:', margin + contentWidth / 3, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(numero, margin + contentWidth / 3 + 10, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Horário:', margin + (contentWidth * 2 / 3), y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(horario, margin + (contentWidth * 2 / 3) + 18, y + 3.5);
                 y += 6;
 
-                // === DEMANDA ===
+                // DEMANDA
+                y += 2;
                 y = drawSectionHeader('DEMANDA', y);
-                const demandaOptsList = [
+                const demandaOpts = [
                     ['Munícipe', 'Poder Judiciário / MP'],
                     ['Denúncia', 'Monit. Defesa Civil Mun.'],
                     ['Defesa Civil Est.', 'Poder Legislativo'],
                     ['Ouvidoria', 'Monit. Defesa Civil Est.'],
                     ['PGM', 'Outros']
                 ];
-                const demandaCellW = contentWidth / 2;
-                demandaOptsList.forEach(row => {
-                    drawCheckbox(margin, y, row[0], demandaValues.includes(row[0]), demandaCellW);
-                    drawCheckbox(margin + demandaCellW, y, row[1], demandaValues.includes(row[1]), demandaCellW);
-                    y += 5;
+                const demandaGap = 4;
+                const demandaCellW = (contentWidth - demandaGap) / 2;
+                demandaOpts.forEach(row => {
+                    drawCheckbox(margin, y, row[0], demandas.includes(row[0]), demandaCellW);
+                    drawCheckbox(margin + demandaCellW + demandaGap, y, row[1], demandas.includes(row[1]), demandaCellW);
+                    y += 6;
                 });
 
-                // === SOLICITAÇÃO ===
+                // SOLICITAÇÃO
+                y += 2;
                 y = drawSectionHeader('SOLICITAÇÃO', y);
-                
-                doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth * 0.6, 6, 'D');
-                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.4, 6, 'D');
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Nome:', margin + 1, y + 2.5);
+                doc.text('Nome:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solNome, margin + 12, y + 2.5);
+                doc.text(solNome, margin + 16, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Telefone:', margin + contentWidth * 0.6 + 1, y + 2.5);
+                doc.text('Telefone:', margin + contentWidth * 0.6, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solTel, margin + contentWidth * 0.6 + 18, y + 2.5);
+                doc.text(solTel, margin + contentWidth * 0.6 + 20, y + 3.5);
+                y += 5;
                 
-                const tipoX = margin + contentWidth * 0.6 + 1;
-                doc.rect(tipoX, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Proprietário/Morador') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 0.7, y + 5.5); }
+                // Radio buttons
+                const tipoGap = 3;
+                const tipoCardW = (contentWidth - tipoGap * 2) / 3;
+                const tipoCardH = 5;
+                
+                if (tipoSol === 'Proprietário/Morador') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(margin, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(margin + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Proprietário/Morador') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(margin + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.setFontSize(6);
                 doc.setFont('helvetica', 'normal');
-                doc.setFontSize(5);
-                doc.text('Prop./Morador', tipoX + 3.5, y + 5.5);
+                doc.text('Prop./Morador', margin + 6, y + 3.3);
                 
-                doc.rect(tipoX + 23, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX + 23, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Responsável') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 23.7, y + 5.5); }
-                doc.setFont('helvetica', 'normal');
-                doc.text('Responsável', tipoX + 26.5, y + 5.5);
+                const respX = margin + tipoCardW + tipoGap;
+                if (tipoSol === 'Responsável') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(respX, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(respX + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Responsável') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(respX + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.text('Responsável', respX + 6, y + 3.3);
                 
-                doc.rect(tipoX + 45, y + 3, 10, 3.5, 'D');
-                doc.rect(tipoX + 45, y + 3, 3, 3.5, 'D');
-                if (tipoSol === 'Outro') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 45.7, y + 5.5); }
-                doc.setFont('helvetica', 'normal');
-                doc.text('Outro', tipoX + 48.5, y + 5.5);
+                const outroX = margin + (tipoCardW + tipoGap) * 2;
+                if (tipoSol === 'Outro') {
+                    doc.setDrawColor(...orange);
+                    doc.setFillColor(255, 245, 240);
+                } else {
+                    doc.setDrawColor(224, 224, 224);
+                    doc.setFillColor(250, 250, 250);
+                }
+                doc.setLineWidth(0.3);
+                doc.rect(outroX, y, tipoCardW, tipoCardH, 'FD');
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.2);
+                doc.ellipse(outroX + 3, y + 2.5, 1.2, 1.2, 'D');
+                if (tipoSol === 'Outro') {
+                    doc.setFillColor(...orange);
+                    doc.ellipse(outroX + 3, y + 2.5, 0.6, 0.6, 'F');
+                }
+                doc.text('Outro', outroX + 6, y + 3.3);
                 
-                y += 6;
+                y += tipoCardH + 2;
 
                 doc.setFontSize(7);
-                doc.rect(margin, y, contentWidth, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('E-mail:', margin + 1, y + 3.5);
+                doc.text('E-mail:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(solEmail, margin + 14, y + 3.5);
+                doc.text(solEmail, margin + 16, y + 3.5);
                 y += 5;
 
-                doc.rect(margin, y, contentWidth * 0.6, 5, 'D');
-                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.2, 5, 'D');
-                doc.rect(margin + contentWidth * 0.8, y, contentWidth * 0.2, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('Endereço:', margin + 1, y + 3.5);
+                doc.text('Endereço:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(endereco, margin + 18, y + 3.5);
+                doc.text(endereco, margin + 22, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Qd:', margin + contentWidth * 0.6 + 1, y + 3.5);
+                doc.text('Qd:', margin + contentWidth * 0.65, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(quadra, margin + contentWidth * 0.6 + 8, y + 3.5);
+                doc.text(quadra, margin + contentWidth * 0.65 + 10, y + 3.5);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Lote:', margin + contentWidth * 0.8 + 1, y + 3.5);
+                doc.text('Lote:', margin + contentWidth * 0.82, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(lote, margin + contentWidth * 0.8 + 10, y + 3.5);
+                doc.text(lote, margin + contentWidth * 0.82 + 12, y + 3.5);
                 y += 5;
 
-                doc.rect(margin, y, contentWidth, 5, 'D');
                 doc.setFont('helvetica', 'bold');
-                doc.text('Bairro:', margin + 1, y + 3.5);
+                doc.text('Bairro:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
-                doc.text(bairro, margin + 14, y + 3.5);
+                doc.text(bairro, margin + 16, y + 3.5);
                 y += 5;
 
-                // === TIPO DE OCORRÊNCIA ===
+                // TIPO DE OCORRÊNCIA
+                y += 2;
                 y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
-                const ocorrencias = getCheckedValues('tipoOcorrencia');
-                const ocOpts = ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'];
-                const ocWidth = contentWidth / 4;
-                ocOpts.forEach((opt, i) => {
-                    drawCheckbox(margin + (i * ocWidth), y, opt, ocorrencias.includes(opt), ocWidth);
+                const ocorrGap = 3;
+                const ocorrCellW = (contentWidth - ocorrGap * 3) / 4;
+                ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'].forEach((opt, i) => {
+                    drawCheckbox(margin + i * (ocorrCellW + ocorrGap), y, opt, ocorrencias.includes(opt), ocorrCellW);
                 });
                 y += 6;
 
-                // === DESCRIÇÃO DA EDIFICAÇÃO ===
+                // DESCRIÇÃO DA EDIFICAÇÃO
+                y += 2;
                 y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
-                doc.setFontSize(7);
+                
+                doc.setFontSize(6);
                 doc.setFont('helvetica', 'bold');
                 doc.text('TIPO DE EDIFICAÇÃO', margin + 2, y + 3);
-                y += 4;
-                const tipoOpts = ['Residencial', 'Comercial', 'Pública', 'Outras'];
-                tipoOpts.forEach((opt, i) => {
-                    drawCheckbox(margin + (i * (contentWidth / 4)), y, opt, tipoEdifValues.includes(opt), contentWidth / 4);
+                const edifGap = 2;
+                const edifCellW = (contentWidth - edifGap * 3) / 4;
+                ['Residencial', 'Comercial', 'Pública', 'Outras'].forEach((opt, i) => {
+                    drawCheckbox(margin + i * (edifCellW + edifGap), y + 4, opt, tiposEdif.includes(opt), edifCellW);
                 });
-                y += 6;
+                y += 10;
 
                 doc.setFont('helvetica', 'bold');
                 doc.text('ESTRUTURA', margin + 2, y + 3);
-                y += 4;
-                const estOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
-                for (let i = 0; i < estOpts.length; i += 3) {
-                    for (let j = 0; j < 3 && (i + j) < estOpts.length; j++) {
-                        drawCheckbox(margin + (j * (contentWidth / 3)), y, estOpts[i + j], estruturaValues.includes(estOpts[i + j]), contentWidth / 3);
-                    }
-                    y += 5;
-                }
+                const estrutOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
+                const estrutLabels = ['Alv. e concreto', 'Só alvenaria', 'Estr. metálica', 'Madeira/palafita', 'Conc. armado', 'Outros'];
+                const estrutGap = 2;
+                const estrutCellW = (contentWidth - estrutGap * 2) / 3;
+                estrutLabels.slice(0, 3).forEach((label, i) => {
+                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y + 4, label, estruturas.includes(estrutOpts[i]), estrutCellW);
+                });
+                y += 10;
+                estrutLabels.slice(3, 6).forEach((label, i) => {
+                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y, label, estruturas.includes(estrutOpts[i + 3]), estrutCellW);
+                });
+                y += 6;
 
                 doc.setFont('helvetica', 'bold');
                 doc.text('TIPO DE COBERTURA', margin + 2, y + 3);
-                y += 4;
-                const cobOpts = ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'];
-                cobOpts.forEach((opt, i) => {
-                    drawCheckbox(margin + (i * (contentWidth / 4)), y, opt, coberturaValues.includes(opt), contentWidth / 4);
+                const cobGap = 2;
+                const cobCellW = (contentWidth - cobGap * 3) / 4;
+                ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'].forEach((opt, i) => {
+                    drawCheckbox(margin + i * (cobCellW + cobGap), y + 4, opt, coberturas.includes(opt), cobCellW);
                 });
-                y += 6;
+                y += 10;
 
-                // === MANIFESTAÇÕES PATOLÓGICAS ===
-                y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
-                const patOpts = ['Trincas e fissuras', 'Corrosão de ferragens', 'Inclinação/recalques', 'Infiltração', 'Deterioração de estruturas', 'Esquadria(s) emperrada(s)', 'Desprendimento de revestimento', 'Outras'];
-                for (let i = 0; i < patOpts.length; i += 3) {
-                    for (let j = 0; j < 3 && (i + j) < patOpts.length; j++) {
-                        drawCheckbox(margin + (j * (contentWidth / 3)), y, patOpts[i + j], patologiaValues.includes(patOpts[i + j]), contentWidth / 3);
-                    }
-                    y += 5;
-                }
-
-                // === LOCALIZAÇÃO DAS ANOMALIAS ===
-                y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS', y);
-                const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
-                const locWidth = contentWidth / 5;
-                locOpts.forEach((opt, i) => {
-                    drawCheckbox(margin + (i * locWidth), y, opt, localizacaoValues.includes(opt), locWidth);
-                });
-                y += 6;
-
-                // === RELATÓRIO DE VISTORIA ===
-                y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
-                doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth, 35, 'D');
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'normal');
-                const lines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
-                doc.text(lines.slice(0, 12), margin + 2, y + 4);
-                y += 36;
-
-                // === PROVIDÊNCIAS ===
-                y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
-                const provOpts = ['Isolamento e evacuação', 'Avaliação de engenheiro', 'Interdição parcial', 'Interdição total', 'Demolição', 'Desassoreamento / Limpeza', 'Corte / Poda de árvore', 'Remoção de entulhos', 'Outros'];
-                for (let i = 0; i < provOpts.length; i += 3) {
-                    for (let j = 0; j < 3 && (i + j) < provOpts.length; j++) {
-                        drawCheckbox(margin + (j * (contentWidth / 3)), y, provOpts[i + j], providencias.includes(provOpts[i+j]), contentWidth / 3);
-                    }
-                    y += 5;
-                }
+                // MANIFESTAÇÕES PATOLÓGICAS
                 y += 2;
+                y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
+                const patOpts = [
+                    ['Trincas e fissuras', 'Corrosão de ferragens'],
+                    ['Inclinação/recalques', 'Infiltração'],
+                    ['Deterioração de estruturas', 'Esquadria(s) emperrada(s)'],
+                    ['Desprendimento de revestimento', 'Outras']
+                ];
+                const patGap = 4;
+                const patCellW = (contentWidth - patGap) / 2;
+                patOpts.forEach(row => {
+                    row.forEach((opt, i) => {
+                        if (opt) drawCheckbox(margin + i * (patCellW + patGap), y, opt, patologias.includes(opt), patCellW);
+                    });
+                    y += 6;
+                });
 
-                // === ASSINATURA ===
+                // LOCALIZAÇÃO DAS ANOMALIAS
+                y += 2;
+                y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS VERIFICADAS', y);
+                const locGap = 3;
+                const locCellW = (contentWidth - locGap * 2) / 3;
+                const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
+                locOpts.slice(0, 3).forEach((opt, i) => {
+                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
+                });
+                y += 6;
+                locOpts.slice(3, 5).forEach((opt, i) => {
+                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
+                });
+                y += 6;
+
+                // RELATÓRIO DE VISTORIA
+                y += 2;
+                y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
+                
+                const espacoAssinatura = 20;
+                const espacoRestante = pageHeight - y - margin - espacoAssinatura;
+                
+                // Dividir espaço entre Relatório e Providências proporcionalmente
+                const relatorioTemConteudo = relatorio && relatorio.trim().length > 0;
+                const providenciasTemConteudo = providencias && providencias.trim().length > 0;
+                
+                let alturaRelatorio, alturaProvidencias;
+                const espacoParaCampos = espacoRestante - 12; // 12mm para headers e gaps
+                
+                if (relatorioTemConteudo && providenciasTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.5;
+                    alturaProvidencias = espacoParaCampos * 0.5;
+                } else if (relatorioTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.65;
+                    alturaProvidencias = espacoParaCampos * 0.35;
+                } else if (providenciasTemConteudo) {
+                    alturaRelatorio = espacoParaCampos * 0.35;
+                    alturaProvidencias = espacoParaCampos * 0.65;
+                } else {
+                    alturaRelatorio = espacoParaCampos * 0.5;
+                    alturaProvidencias = espacoParaCampos * 0.5;
+                }
+                
+                alturaRelatorio = Math.max(alturaRelatorio, 12);
+                alturaProvidencias = Math.max(alturaProvidencias, 12);
+                
+                let fontSizeTexto = 7;
+                const linhaAltura = 3.5;
+                
+                doc.setFontSize(fontSizeTexto);
+                let relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
+                let maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / linhaAltura);
+                
+                if (relatorioLines.length > maxLinhasRelatorio && relatorioTemConteudo) {
+                    fontSizeTexto = 6;
+                    doc.setFontSize(fontSizeTexto);
+                    relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
+                    maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / 3);
+                }
+                
                 doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth, 12, 'D');
+                doc.rect(margin, y, contentWidth, alturaRelatorio, 'D');
+                doc.setFontSize(fontSizeTexto);
+                doc.setFont('helvetica', 'normal');
+                let relY = y + 4;
+                const linhaAlturaAjustada = fontSizeTexto === 6 ? 3 : 3.5;
+                relatorioLines.slice(0, maxLinhasRelatorio).forEach(line => {
+                    doc.text(line, margin + 2, relY);
+                    relY += linhaAlturaAjustada;
+                });
+                y += alturaRelatorio;
+
+                // PROVIDÊNCIAS
+                y += 2;
+                y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
+                
+                doc.setFontSize(fontSizeTexto);
+                let provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
+                let maxLinhasProv = Math.floor((alturaProvidencias - 4) / linhaAlturaAjustada);
+                
+                if (provLines.length > maxLinhasProv && providenciasTemConteudo && fontSizeTexto > 5) {
+                    fontSizeTexto = 5;
+                    doc.setFontSize(fontSizeTexto);
+                    provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
+                    maxLinhasProv = Math.floor((alturaProvidencias - 4) / 2.5);
+                }
+                
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth, alturaProvidencias, 'D');
+                doc.setFontSize(fontSizeTexto);
+                doc.setFont('helvetica', 'normal');
+                let provY = y + 4;
+                const linhaAlturaFinal = fontSizeTexto === 5 ? 2.5 : linhaAlturaAjustada;
+                provLines.slice(0, maxLinhasProv).forEach(line => {
+                    doc.text(line, margin + 2, provY);
+                    provY += linhaAlturaFinal;
+                });
+                y += alturaProvidencias;
+
+                // ASSINATURA
+                y += 3;
+                
+                const cidade = 'Cidade Ocidental';
+                const dataExtenso = new Date(document.getElementById('data').value + 'T12:00:00')
+                    .toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${cidade}, ${dataExtenso}`, margin + 2, y);
+                y += 8;
+
+                doc.setDrawColor(0, 0, 0);
+                doc.setLineWidth(0.5);
+                doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+                y += 4;
+                
                 doc.setFontSize(8);
                 doc.setFont('helvetica', 'bold');
-                doc.text('Agente de Defesa Civil:', margin + 2, y + 5);
+                doc.text(document.getElementById('agenteNome').value, pageWidth / 2, y, { align: 'center' });
+                y += 3;
+                
                 doc.setFont('helvetica', 'normal');
-                doc.text(agenteNome, margin + 45, y + 5);
-                doc.text('Assinatura: _______________________________________', margin + 2, y + 10);
+                doc.setFontSize(7);
+                doc.text(document.getElementById('agenteCargo').value || 'Agente de Defesa Civil', pageWidth / 2, y, { align: 'center' });
+                y += 3;
+                doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
 
-                // Fotos em páginas adicionais
+                // FOTOS
                 if (photos.length > 0) {
-                    const imgWidth = 90;
-                    const imgHeight = 70;
-                    const imgMargin = 5;
-                    const photosPerPage = 4;
+                    const cols = 2;
+                    const rows = 6;
+                    const photosPerPage = cols * rows;
+                    const imgGap = 5;
+                    const imgWidth = (contentWidth - imgGap) / cols;
+                    const imgHeight = imgWidth * 0.75;
                     const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
 
                     for (let page = 0; page < totalPhotoPages; page++) {
@@ -1594,55 +1993,86 @@ if (photos.length > 0) {
 
                         doc.setTextColor(0, 0, 0);
 
-                        const positions = [
-                            { x: margin + imgMargin, y: y },
-                            { x: margin + imgWidth + imgMargin * 2, y: y },
-                            { x: margin + imgMargin, y: y + imgHeight + 25 },
-                            { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
-                        ];
-
                         const startIdx = page * photosPerPage;
                         const endIdx = Math.min(startIdx + photosPerPage, photos.length);
-                        
+
                         for (let i = startIdx; i < endIdx; i++) {
-                            const pos = positions[i - startIdx];
+                            const pagePos = i - startIdx;
+                            const col = pagePos % cols;
+                            const row = Math.floor(pagePos / cols);
+
+                            const x = margin + col * (imgWidth + imgGap);
+                            const yPos = y + row * (imgHeight + 18);
+
                             const photoNum = i + 1;
-                            
-                            doc.setFontSize(9);
+
+                            doc.setFontSize(8);
                             doc.setFont('helvetica', 'bold');
-                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
 
                             doc.setDrawColor(...orange);
                             doc.setLineWidth(0.5);
-                            doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+                            doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
 
                             try {
-                                doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
+                                doc.addImage(photos[i].data, 'JPEG', x + 1, yPos + 4, imgWidth - 2, imgHeight - 2);
                             } catch (e) {
                                 console.error('Erro ao adicionar imagem:', e);
                             }
-                            
+
                             if (photos[i].description) {
-                                doc.setFontSize(7);
+                                doc.setFontSize(6);
                                 doc.setFont('helvetica', 'italic');
-                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
-                                doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
+                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth - 4);
+                                doc.text(descLines[0] || '', x + imgWidth / 2, yPos + imgHeight + 6, { align: 'center' });
                             }
                         }
                     }
                 }
 
-                // Abrir para impressão
                 const pdfBlob = doc.output('blob');
-                const pdfUrl = URL.createObjectURL(pdfBlob);
-                const printWindow = window.open(pdfUrl, '_blank');
-                if (printWindow) {
-                    printWindow.onload = function() {
-                        printWindow.print();
-                    };
-                }
+                const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
                 
-                showToast('PDF aberto para impressão!', 'success');
+                if (navigator.share) {
+                    try {
+                        const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({
+                                title: 'Relatório de Vistoria',
+                                text: 'Relatório de Vistoria - Defesa Civil',
+                                files: [file]
+                            });
+                            showToast('PDF compartilhado com sucesso!', 'success');
+                        } else {
+                            const url = URL.createObjectURL(pdfBlob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileName;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                            showToast('PDF baixado (compartilhamento não suportado)', 'success');
+                        }
+                    } catch (err) {
+                        if (err.name !== 'AbortError') {
+                            console.error('Erro ao compartilhar:', err);
+                            showToast('Erro ao compartilhar. PDF será baixado.', 'error');
+                            const url = URL.createObjectURL(pdfBlob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = fileName;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                        }
+                    }
+                } else {
+                    const url = URL.createObjectURL(pdfBlob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileName;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    showToast('PDF baixado (compartilhamento não disponível)', 'success');
+                }
             } catch (error) {
                 console.error('Erro ao gerar PDF:', error);
                 showToast('Erro ao gerar PDF. Tente novamente.', 'error');
@@ -1651,11 +2081,9 @@ if (photos.length > 0) {
             }
         }
 
-        function showToast(message, type) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.className = `toast ${type} show`;
-            setTimeout(() => toast.classList.remove('show'), 3000);
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
         }
     </script>
 </body>
