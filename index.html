@@ -405,7 +405,7 @@
 <body>
     <header class="header">
         <h1>DEFESA CIVIL MUNICIPAL</h1>
-        <p>Relatório de Vistoria de Risco</p>
+        <p>Relatório Simplificado De Atendimento De Ocorrência</p>
     </header>
 
     <div class="container">
@@ -1194,71 +1194,87 @@
                 y += 3;
                 doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
 
-                // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========
-                if (photos.length > 0) {
-                    const imgWidth = 90;
-                    const imgHeight = 70;
-                    const imgMargin = 5;
-                    const photosPerPage = 4;
-                    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
+ // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========  
+if (photos.length > 0) {
 
-                    for (let page = 0; page < totalPhotoPages; page++) {
-                        doc.addPage();
-                        y = margin;
+    // CONFIGURAÇÃO DA GRADE 2x6
+    const cols = 2;
+    const rows = 6;
+    const photosPerPage = cols * rows; // 12 por página
 
-                        // Cabeçalho laranja
-                        doc.setFillColor(...orange);
-                        doc.rect(margin, y, contentWidth, 8, 'F');
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(11);
-                        doc.setFont('helvetica', 'bold');
-                        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
-                        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
-                        y += 12;
+    const imgWidth = (contentWidth - 10) / cols;  // largura proporcional
+    const imgHeight = imgWidth * 0.75;            // ajuste para manter proporção
+    const imgMargin = 5;
 
-                        doc.setTextColor(0, 0, 0);
+    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
 
-                        // Posições para grid 2x2
-                        const positions = [
-                            { x: margin + imgMargin, y: y },
-                            { x: margin + imgWidth + imgMargin * 2, y: y },
-                            { x: margin + imgMargin, y: y + imgHeight + 25 },
-                            { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
-                        ];
+    for (let page = 0; page < totalPhotoPages; page++) {
+        doc.addPage();
+        y = margin;
 
-                        const startIdx = page * photosPerPage;
-                        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
-                        
-                        for (let i = startIdx; i < endIdx; i++) {
-                            const pos = positions[i - startIdx];
-                            const photoNum = i + 1;
-                            
-                            // Título da imagem
-                            doc.setFontSize(9);
-                            doc.setFont('helvetica', 'bold');
-                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+        // Cabeçalho laranja
+        doc.setFillColor(...orange);
+        doc.rect(margin, y, contentWidth, 8, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'bold');
+        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
+        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
+        y += 12;
 
-                            // Borda da imagem
-                            doc.setDrawColor(...orange);
-                            doc.setLineWidth(0.5);
-                            doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+        doc.setTextColor(0, 0, 0);
 
-                            try {
-                                doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
-                            } catch (e) {
-                                console.error('Erro ao adicionar imagem:', e);
-                            }
-                            
-                            // Descrição
-                            if (photos[i].description) {
-                                doc.setFontSize(7);
-                                doc.setFont('helvetica', 'italic');
-                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
-                                doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
-                            }
-                        }
-                    }
-                }
+        // Fotos desta página
+        const startIdx = page * photosPerPage;
+        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
+
+        for (let i = startIdx; i < endIdx; i++) {
+
+            const pagePos = i - startIdx;
+
+            const col = pagePos % cols;
+            const row = Math.floor(pagePos / cols);
+
+            const x = margin + col * (imgWidth + imgMargin);
+            const yPos = y + row * (imgHeight + 22);
+
+            const photoNum = i + 1;
+
+            // Título
+            doc.setFontSize(9);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
+
+            // Borda
+            doc.setDrawColor(...orange);
+            doc.setLineWidth(0.5);
+            doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
+
+            // Foto
+            try {
+                doc.addImage(
+                    photos[i].data,
+                    'JPEG',
+                    x + 1,
+                    yPos + 4,
+                    imgWidth - 2,
+                    imgHeight - 2
+                );
+            } catch (e) {
+                console.error('Erro ao adicionar imagem:', e);
+            }
+
+            // Descrição
+            if (photos[i].description) {
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'italic');
+                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
+                doc.text(descLines[0] || '', x + imgWidth / 2, yPos + imgHeight + 7, { align: 'center' });
+            }
+        }
+    }
+}
+
 
 
                 // Salvar PDF
