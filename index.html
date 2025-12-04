@@ -292,12 +292,12 @@
             background: white;
             box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
             z-index: 100;
+            display: flex;
+            gap: 12px;
         }
 
         .submit-btn {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -326,6 +326,14 @@
         .submit-btn svg {
             width: 20px;
             height: 20px;
+        }
+        
+        .print-btn {
+            background: #6c757d;
+        }
+
+        .print-btn:hover {
+            background: #5a6268;
         }
 
         .loading-overlay {
@@ -720,7 +728,7 @@
 
             <!-- Fotos -->
             <div class="section">
-                <div class="section-title">Relatório Fotográfico (máx. 4 fotos)</div>
+                <div class="section-title">Relatório Fotográfico</div>
                 <div class="photo-section">
                     <label class="photo-btn" for="photoInput">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -731,7 +739,7 @@
                     </label>
                     <input type="file" id="photoInput" class="photo-input" accept="image/*" multiple capture="environment">
                     <div class="photo-preview" id="photoPreview"></div>
-                    <p class="photo-limit-info">As fotos aparecerão em uma segunda página do PDF</p>
+                    <p class="photo-limit-info">As fotos aparecerão em páginas adicionais do PDF (4 fotos por página)</p>
                 </div>
             </div>
         </form>
@@ -746,6 +754,14 @@
                 <line x1="9" y1="15" x2="15" y2="15"/>
             </svg>
             Gerar Relatório PDF
+        </button>
+        <button type="button" class="submit-btn print-btn" onclick="printPDF()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"/>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+                <rect x="6" y="14" width="12" height="8"/>
+            </svg>
+            Imprimir
         </button>
     </div>
 
@@ -779,19 +795,13 @@
             });
         });
 
-        // Gerenciamento de fotos - máximo 4
+        // Gerenciamento de fotos - removido limite de 4 fotos
         let photos = [];
         
         document.getElementById('photoInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            const remaining = 4 - photos.length;
             
-            if (remaining <= 0) {
-                showToast('Máximo de 4 fotos atingido', 'error');
-                return;
-            }
-            
-            files.slice(0, remaining).forEach(file => {
+            files.forEach(file => {
                 const reader = new FileReader();
                 reader.onload = function(event) {
                     photos.push({
@@ -1186,61 +1196,70 @@
 
                 // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========
                 if (photos.length > 0) {
-                    doc.addPage();
-                    y = margin;
-
-                    // Cabeçalho laranja
-                    doc.setFillColor(...orange);
-                    doc.rect(margin, y, contentWidth, 8, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(11);
-                    doc.setFont('helvetica', 'bold');
-                    doc.text('RELATÓRIO FOTOGRÁFICO', pageWidth / 2, y + 5.5, { align: 'center' });
-                    y += 12;
-
-                    doc.setTextColor(0, 0, 0);
-
-                    // Grid 2x2 para fotos
                     const imgWidth = 90;
                     const imgHeight = 70;
                     const imgMargin = 5;
-                    
-                    const positions = [
-                        { x: margin + imgMargin, y: y },
-                        { x: margin + imgWidth + imgMargin * 2, y: y },
-                        { x: margin + imgMargin, y: y + imgHeight + 25 },
-                        { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
-                    ];
+                    const photosPerPage = 4;
+                    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
 
-                    const maxPhotos = Math.min(photos.length, 4);
-                    for (let i = 0; i < maxPhotos; i++) {
-                        const pos = positions[i];
-                        
-                        // Título da imagem
-                        doc.setFontSize(9);
+                    for (let page = 0; page < totalPhotoPages; page++) {
+                        doc.addPage();
+                        y = margin;
+
+                        // Cabeçalho laranja
+                        doc.setFillColor(...orange);
+                        doc.rect(margin, y, contentWidth, 8, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(11);
                         doc.setFont('helvetica', 'bold');
-                        doc.text(`IMAGEM ${String(i + 1).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+                        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
+                        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
+                        y += 12;
 
-                        // Borda da imagem
-                        doc.setDrawColor(...orange);
-                        doc.setLineWidth(0.5);
-                        doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+                        doc.setTextColor(0, 0, 0);
 
-                        try {
-                            doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
-                        } catch (e) {
-                            console.error('Erro ao adicionar imagem:', e);
-                        }
+                        // Posições para grid 2x2
+                        const positions = [
+                            { x: margin + imgMargin, y: y },
+                            { x: margin + imgWidth + imgMargin * 2, y: y },
+                            { x: margin + imgMargin, y: y + imgHeight + 25 },
+                            { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
+                        ];
+
+                        const startIdx = page * photosPerPage;
+                        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
                         
-                        // Descrição
-                        if (photos[i].description) {
-                            doc.setFontSize(7);
-                            doc.setFont('helvetica', 'italic');
-                            const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
-                            doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
+                        for (let i = startIdx; i < endIdx; i++) {
+                            const pos = positions[i - startIdx];
+                            const photoNum = i + 1;
+                            
+                            // Título da imagem
+                            doc.setFontSize(9);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+
+                            // Borda da imagem
+                            doc.setDrawColor(...orange);
+                            doc.setLineWidth(0.5);
+                            doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+
+                            try {
+                                doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
+                            } catch (e) {
+                                console.error('Erro ao adicionar imagem:', e);
+                            }
+                            
+                            // Descrição
+                            if (photos[i].description) {
+                                doc.setFontSize(7);
+                                doc.setFont('helvetica', 'italic');
+                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
+                                doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
+                            }
                         }
                     }
                 }
+
 
                 // Salvar PDF
                 const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
@@ -1253,6 +1272,374 @@
             } finally {
                 loading.classList.remove('active');
             }
+        }
+
+        async function printPDF() {
+            const form = document.getElementById('reportForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.add('active');
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const pageWidth = 210;
+                const pageHeight = 297;
+                const margin = 5;
+                const contentWidth = pageWidth - (margin * 2);
+                let y = margin;
+
+                // Cores
+                const orange = [232, 108, 40];
+                const borderColor = [200, 200, 200];
+
+                // Helper functions (mesmas do generatePDF)
+                function drawSectionHeader(title, yPos) {
+                    doc.setFillColor(...orange);
+                    doc.rect(margin, yPos, contentWidth, 6, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(title, margin + 2, yPos + 4);
+                    doc.setTextColor(0, 0, 0);
+                    return yPos + 6;
+                }
+
+                function drawCheckbox(x, yPos, label, checked, width = 38) {
+                    doc.setDrawColor(...borderColor);
+                    doc.setFillColor(255, 255, 255);
+                    doc.rect(x, yPos, width, 5, 'FD');
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.rect(x + 1, yPos + 1, 3, 3, 'D');
+                    if (checked) {
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('X', x + 1.6, yPos + 3.5);
+                        doc.setFont('helvetica', 'normal');
+                    }
+                    doc.text(label, x + 5.5, yPos + 3.5);
+                }
+
+                function drawCell(x, yPos, width, height, content, bold = false) {
+                    doc.setDrawColor(...borderColor);
+                    doc.rect(x, yPos, width, height, 'D');
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+                    doc.text(content, x + 1, yPos + 3.5);
+                }
+
+                // Obter valores do formulário
+                const data = document.getElementById('data').value;
+                const numero = document.getElementById('numero').value;
+                const horario = document.getElementById('horario').value;
+                const demandaValues = getCheckedValues('demanda');
+                const solNome = document.getElementById('solicitanteNome').value;
+                const solTel = document.getElementById('solicitanteTelefone').value;
+                const tipoSol = getRadioValue('tipoSolicitante');
+                const solEmail = document.getElementById('solicitanteEmail').value;
+                const endereco = document.getElementById('endereco').value;
+                const quadra = document.getElementById('quadra').value;
+                const lote = document.getElementById('lote').value;
+                const bairro = document.getElementById('bairro').value;
+                const ocorrenciaValues = getCheckedValues('tipoOcorrencia');
+                const tipoEdifValues = getCheckedValues('tipoEdificacao');
+                const estruturaValues = getCheckedValues('estrutura');
+                const coberturaValues = getCheckedValues('cobertura');
+                const patologiaValues = getCheckedValues('patologia');
+                const localizacaoValues = getCheckedValues('localizacao');
+                const relatorio = document.getElementById('relatorio').value;
+                const providencias = document.getElementById('providencias').value;
+                const agenteNome = document.getElementById('agenteNome').value;
+                const agenteCargo = document.getElementById('agenteCargo').value;
+                const agenteDecreto = document.getElementById('agenteDecreto').value;
+
+                // === CABEÇALHO PRINCIPAL ===
+                doc.setFillColor(...orange);
+                doc.rect(margin, y, contentWidth, 8, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('RELATÓRIO DE VISTORIA DE RISCO', pageWidth / 2, y + 5.5, { align: 'center' });
+                y += 10;
+
+                // Data, Nº, Horário
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text(`DATA: ${formatDate(data)}`, margin + 2, y + 3);
+                doc.text(`Nº: ${numero}`, margin + 80, y + 3);
+                doc.text(`HORÁRIO: ${horario}`, margin + 150, y + 3);
+                y += 6;
+
+                // === DEMANDA ===
+                y = drawSectionHeader('DEMANDA', y);
+                const demandaOptsList = [
+                    ['Munícipe', 'Poder Judiciário / MP'],
+                    ['Denúncia', 'Monit. Defesa Civil Mun.'],
+                    ['Defesa Civil Est.', 'Poder Legislativo'],
+                    ['Ouvidoria', 'Monit. Defesa Civil Est.'],
+                    ['PGM', 'Outros']
+                ];
+                const demandaCellW = contentWidth / 2;
+                demandaOptsList.forEach(row => {
+                    drawCheckbox(margin, y, row[0], demandaValues.includes(row[0]), demandaCellW);
+                    drawCheckbox(margin + demandaCellW, y, row[1], demandaValues.includes(row[1]), demandaCellW);
+                    y += 5;
+                });
+
+                // === SOLICITAÇÃO ===
+                y = drawSectionHeader('SOLICITAÇÃO', y);
+                
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth * 0.6, 6, 'D');
+                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.4, 6, 'D');
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Nome:', margin + 1, y + 2.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solNome, margin + 12, y + 2.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Telefone:', margin + contentWidth * 0.6 + 1, y + 2.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solTel, margin + contentWidth * 0.6 + 18, y + 2.5);
+                
+                const tipoX = margin + contentWidth * 0.6 + 1;
+                doc.rect(tipoX, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Proprietário/Morador') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 0.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(5);
+                doc.text('Prop./Morador', tipoX + 3.5, y + 5.5);
+                
+                doc.rect(tipoX + 23, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX + 23, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Responsável') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 23.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.text('Responsável', tipoX + 26.5, y + 5.5);
+                
+                doc.rect(tipoX + 45, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX + 45, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Outro') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 45.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.text('Outro', tipoX + 48.5, y + 5.5);
+                
+                y += 6;
+
+                doc.setFontSize(7);
+                doc.rect(margin, y, contentWidth, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('E-mail:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solEmail, margin + 14, y + 3.5);
+                y += 5;
+
+                doc.rect(margin, y, contentWidth * 0.6, 5, 'D');
+                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.2, 5, 'D');
+                doc.rect(margin + contentWidth * 0.8, y, contentWidth * 0.2, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Endereço:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(endereco, margin + 18, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Qd:', margin + contentWidth * 0.6 + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(quadra, margin + contentWidth * 0.6 + 8, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Lote:', margin + contentWidth * 0.8 + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(lote, margin + contentWidth * 0.8 + 10, y + 3.5);
+                y += 5;
+
+                doc.rect(margin, y, contentWidth, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Bairro:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(bairro, margin + 14, y + 3.5);
+                y += 5;
+
+                // === TIPO DE OCORRÊNCIA ===
+                y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
+                const ocorrencias = getCheckedValues('tipoOcorrencia');
+                const ocOpts = ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'];
+                const ocWidth = contentWidth / 4;
+                ocOpts.forEach((opt, i) => {
+                    drawCheckbox(margin + (i * ocWidth), y, opt, ocorrencias.includes(opt), ocWidth);
+                });
+                y += 6;
+
+                // === DESCRIÇÃO DA EDIFICAÇÃO ===
+                y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TIPO DE EDIFICAÇÃO', margin + 2, y + 3);
+                y += 4;
+                const tipoOpts = ['Residencial', 'Comercial', 'Pública', 'Outras'];
+                tipoOpts.forEach((opt, i) => {
+                    drawCheckbox(margin + (i * (contentWidth / 4)), y, opt, tipoEdifValues.includes(opt), contentWidth / 4);
+                });
+                y += 6;
+
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTRUTURA', margin + 2, y + 3);
+                y += 4;
+                const estOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
+                for (let i = 0; i < estOpts.length; i += 3) {
+                    for (let j = 0; j < 3 && (i + j) < estOpts.length; j++) {
+                        drawCheckbox(margin + (j * (contentWidth / 3)), y, estOpts[i + j], estruturaValues.includes(estOpts[i + j]), contentWidth / 3);
+                    }
+                    y += 5;
+                }
+
+                doc.setFont('helvetica', 'bold');
+                doc.text('TIPO DE COBERTURA', margin + 2, y + 3);
+                y += 4;
+                const cobOpts = ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'];
+                cobOpts.forEach((opt, i) => {
+                    drawCheckbox(margin + (i * (contentWidth / 4)), y, opt, coberturaValues.includes(opt), contentWidth / 4);
+                });
+                y += 6;
+
+                // === MANIFESTAÇÕES PATOLÓGICAS ===
+                y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
+                const patOpts = ['Trincas e fissuras', 'Corrosão de ferragens', 'Inclinação/recalques', 'Infiltração', 'Deterioração de estruturas', 'Esquadria(s) emperrada(s)', 'Desprendimento de revestimento', 'Outras'];
+                for (let i = 0; i < patOpts.length; i += 3) {
+                    for (let j = 0; j < 3 && (i + j) < patOpts.length; j++) {
+                        drawCheckbox(margin + (j * (contentWidth / 3)), y, patOpts[i + j], patologiaValues.includes(patOpts[i + j]), contentWidth / 3);
+                    }
+                    y += 5;
+                }
+
+                // === LOCALIZAÇÃO DAS ANOMALIAS ===
+                y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS', y);
+                const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
+                const locWidth = contentWidth / 5;
+                locOpts.forEach((opt, i) => {
+                    drawCheckbox(margin + (i * locWidth), y, opt, localizacaoValues.includes(opt), locWidth);
+                });
+                y += 6;
+
+                // === RELATÓRIO DE VISTORIA ===
+                y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth, 35, 'D');
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const lines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
+                doc.text(lines.slice(0, 12), margin + 2, y + 4);
+                y += 36;
+
+                // === PROVIDÊNCIAS ===
+                y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
+                const provOpts = ['Isolamento e evacuação', 'Avaliação de engenheiro', 'Interdição parcial', 'Interdição total', 'Demolição', 'Desassoreamento / Limpeza', 'Corte / Poda de árvore', 'Remoção de entulhos', 'Outros'];
+                for (let i = 0; i < provOpts.length; i += 3) {
+                    for (let j = 0; j < 3 && (i + j) < provOpts.length; j++) {
+                        drawCheckbox(margin + (j * (contentWidth / 3)), y, provOpts[i + j], providencias.includes(provOpts[i+j]), contentWidth / 3);
+                    }
+                    y += 5;
+                }
+                y += 2;
+
+                // === ASSINATURA ===
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth, 12, 'D');
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Agente de Defesa Civil:', margin + 2, y + 5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(agenteNome, margin + 45, y + 5);
+                doc.text('Assinatura: _______________________________________', margin + 2, y + 10);
+
+                // Fotos em páginas adicionais
+                if (photos.length > 0) {
+                    const imgWidth = 90;
+                    const imgHeight = 70;
+                    const imgMargin = 5;
+                    const photosPerPage = 4;
+                    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
+
+                    for (let page = 0; page < totalPhotoPages; page++) {
+                        doc.addPage();
+                        y = margin;
+
+                        doc.setFillColor(...orange);
+                        doc.rect(margin, y, contentWidth, 8, 'F');
+                        doc.setTextColor(255, 255, 255);
+                        doc.setFontSize(11);
+                        doc.setFont('helvetica', 'bold');
+                        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
+                        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
+                        y += 12;
+
+                        doc.setTextColor(0, 0, 0);
+
+                        const positions = [
+                            { x: margin + imgMargin, y: y },
+                            { x: margin + imgWidth + imgMargin * 2, y: y },
+                            { x: margin + imgMargin, y: y + imgHeight + 25 },
+                            { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
+                        ];
+
+                        const startIdx = page * photosPerPage;
+                        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
+                        
+                        for (let i = startIdx; i < endIdx; i++) {
+                            const pos = positions[i - startIdx];
+                            const photoNum = i + 1;
+                            
+                            doc.setFontSize(9);
+                            doc.setFont('helvetica', 'bold');
+                            doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+
+                            doc.setDrawColor(...orange);
+                            doc.setLineWidth(0.5);
+                            doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+
+                            try {
+                                doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
+                            } catch (e) {
+                                console.error('Erro ao adicionar imagem:', e);
+                            }
+                            
+                            if (photos[i].description) {
+                                doc.setFontSize(7);
+                                doc.setFont('helvetica', 'italic');
+                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
+                                doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
+                            }
+                        }
+                    }
+                }
+
+                // Abrir para impressão
+                const pdfBlob = doc.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                const printWindow = window.open(pdfUrl, '_blank');
+                if (printWindow) {
+                    printWindow.onload = function() {
+                        printWindow.print();
+                    };
+                }
+                
+                showToast('PDF aberto para impressão!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
     </script>
 </body>
