@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#E86C28">
+    <title>Defesa Civil - Relatório de Vistoria</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+            color: #1a1a2e;
+            line-height: 1.5;
+            padding-bottom: 100px;
+        }
+
+        .header {
+            background: #E86C28;
+            color: white;
+            padding: 20px 16px;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 16px;
+        }
+
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            border: 1px solid #e0e0e0;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #E86C28;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #E86C28;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .row > * {
+            flex: 1;
+        }
+
+        .field {
+            margin-bottom: 12px;
+        }
+
+        .field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+
+        .field input, .field textarea, .field select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #d1d9e6;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .field input:focus, .field textarea:focus, .field select:focus {
+            outline: none;
+            border-color: #E86C28;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(232, 108, 40, 0.1);
+        }
+
+        .field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .checkbox-grid.single {
+            grid-template-columns: 1fr;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: #fafafa;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e0e0e0;
+        }
+
+        .checkbox-item:hover {
+            background: #fff5f0;
+            border-color: #E86C28;
+        }
+
+        .checkbox-item.checked {
+            background: #fff5f0;
+            border-color: #E86C28;
+        }
+
+        .checkbox-item input {
+            width: 18px;
+            height: 18px;
+            accent-color: #E86C28;
+            cursor: pointer;
+        }
+
+        .checkbox-item span {
+            font-size: 13px;
+            color: #2d3748;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .radio-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            background: #fafafa;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 1px solid #e0e0e0;
+            transition: all 0.2s;
+        }
+
+        .radio-item:hover {
+            background: #fff5f0;
+            border-color: #E86C28;
+        }
+
+        .radio-item.checked {
+            background: #fff5f0;
+            border-color: #E86C28;
+        }
+
+        .radio-item input {
+            accent-color: #E86C28;
+            cursor: pointer;
+        }
+
+        .radio-item span {
+            font-size: 13px;
+        }
+
+        .photo-section {
+            margin-top: 12px;
+        }
+
+        .photo-input {
+            display: none;
+        }
+
+        .photo-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            padding: 14px;
+            background: #fafafa;
+            border: 2px dashed #E86C28;
+            border-radius: 6px;
+            color: #E86C28;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .photo-btn:hover {
+            background: #fff5f0;
+        }
+
+        .photo-preview {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .photo-item {
+            position: relative;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #f0f4f8;
+            border: 1px solid #e0e0e0;
+        }
+
+        .photo-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .photo-item .remove-photo {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            background: rgba(220, 53, 69, 0.9);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .photo-item input {
+            width: 100%;
+            padding: 8px;
+            border: none;
+            border-top: 1px solid #e0e0e0;
+            font-size: 12px;
+            background: white;
+        }
+
+        .photo-item input:focus {
+            outline: none;
+            background: #fafafa;
+        }
+
+        .photo-limit-info {
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            margin-top: 8px;
+        }
+
+        .submit-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 16px;
+            background: white;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .submit-btn {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 16px 24px;
+            background: #E86C28;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            background: #d55a1a;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(232, 108, 40, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top-color: #E86C28;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-overlay p {
+            color: white;
+            font-size: 16px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #333;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .toast.error {
+            background: #dc3545;
+        }
+
+        .toast.success {
+            background: #28a745;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>DEFESA CIVIL MUNICIPAL</h1>
+        <p>Relatório de Vistoria de Risco</p>
+    </header>
+
+    <div class="container">
+        <form id="reportForm">
+            <!-- Cabeçalho -->
+            <div class="section">
+                <div class="section-title">Identificação</div>
+                <div class="row">
+                    <div class="field">
+                        <label>Data</label>
+                        <input type="date" id="data" required>
+                    </div>
+                    <div class="field">
+                        <label>N°</label>
+                        <input type="text" id="numero" placeholder="001/2025" required>
+                    </div>
+                    <div class="field">
+                        <label>Horário</label>
+                        <input type="time" id="horario" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demanda -->
+            <div class="section">
+                <div class="section-title">Demanda</div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Munícipe">
+                        <span>Munícipe</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Poder Judiciário / MP">
+                        <span>Poder Judiciário / MP</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Denúncia">
+                        <span>Denúncia</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Monit. Defesa Civil Mun.">
+                        <span>Monit. Defesa Civil Mun.</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Defesa Civil Est.">
+                        <span>Defesa Civil Est.</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Poder Legislativo">
+                        <span>Poder Legislativo</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Ouvidoria">
+                        <span>Ouvidoria</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Monit. Defesa Civil Est.">
+                        <span>Monit. Defesa Civil Est.</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="PGM">
+                        <span>PGM</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="demanda" value="Outros">
+                        <span>Outros</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Solicitação -->
+            <div class="section">
+                <div class="section-title">Solicitação</div>
+                <div class="row">
+                    <div class="field" style="flex: 2;">
+                        <label>Nome</label>
+                        <input type="text" id="solicitanteNome" required>
+                    </div>
+                    <div class="field" style="flex: 1;">
+                        <label>Telefone</label>
+                        <input type="tel" id="solicitanteTelefone" placeholder="(00) 00000-0000">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Tipo de Solicitante</label>
+                    <div class="radio-group">
+                        <label class="radio-item">
+                            <input type="radio" name="tipoSolicitante" value="Proprietário/Morador">
+                            <span>Proprietário/Morador</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="tipoSolicitante" value="Responsável">
+                            <span>Responsável</span>
+                        </label>
+                        <label class="radio-item">
+                            <input type="radio" name="tipoSolicitante" value="Outro">
+                            <span>Outro</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>E-mail</label>
+                    <input type="email" id="solicitanteEmail">
+                </div>
+                <div class="row">
+                    <div class="field" style="flex: 3;">
+                        <label>Endereço</label>
+                        <input type="text" id="endereco" required>
+                    </div>
+                    <div class="field" style="flex: 1;">
+                        <label>Qd</label>
+                        <input type="text" id="quadra">
+                    </div>
+                    <div class="field" style="flex: 1;">
+                        <label>Lote</label>
+                        <input type="text" id="lote">
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Bairro</label>
+                    <input type="text" id="bairro" required>
+                </div>
+            </div>
+
+            <!-- Tipo de Ocorrência -->
+            <div class="section">
+                <div class="section-title">Tipo de Ocorrência</div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoOcorrencia" value="Geológica">
+                        <span>Geológica</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoOcorrencia" value="Estrutural">
+                        <span>Estrutural</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoOcorrencia" value="Hidrológica">
+                        <span>Hidrológica</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoOcorrencia" value="Outras">
+                        <span>Outras</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Descrição da Edificação -->
+            <div class="section">
+                <div class="section-title">Descrição da Edificação Vistoriada</div>
+                
+                <label style="font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 8px; display: block;">TIPO DE EDIFICAÇÃO</label>
+                <div class="checkbox-grid" style="margin-bottom: 16px;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoEdificacao" value="Residencial">
+                        <span>Residencial</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoEdificacao" value="Comercial">
+                        <span>Comercial</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoEdificacao" value="Pública">
+                        <span>Pública</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="tipoEdificacao" value="Outras">
+                        <span>Outras</span>
+                    </label>
+                </div>
+
+                <label style="font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 8px; display: block;">ESTRUTURA</label>
+                <div class="checkbox-grid" style="margin-bottom: 16px;">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Alvenaria e concreto">
+                        <span>Alvenaria e concreto</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Somente alvenaria">
+                        <span>Somente alvenaria</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Estrutura metálica">
+                        <span>Estrutura metálica</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Estrutura de madeira/palafita">
+                        <span>Estrutura de madeira/palafita</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Concreto armado">
+                        <span>Concreto armado</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="estrutura" value="Outros">
+                        <span>Outros</span>
+                    </label>
+                </div>
+
+                <label style="font-size: 12px; font-weight: 600; color: #4a5568; margin-bottom: 8px; display: block;">TIPO DE COBERTURA</label>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="cobertura" value="Laje">
+                        <span>Laje</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="cobertura" value="Telha cerâmica">
+                        <span>Telha cerâmica</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="cobertura" value="Metálica/Zinco">
+                        <span>Metálica/Zinco</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="cobertura" value="Amianto">
+                        <span>Amianto</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Manifestações Patológicas -->
+            <div class="section">
+                <div class="section-title">Manifestações Patológicas</div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Trincas e fissuras">
+                        <span>Trincas e fissuras</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Corrosão de ferragens">
+                        <span>Corrosão de ferragens</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Inclinação/recalques">
+                        <span>Inclinação/recalques</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Infiltração">
+                        <span>Infiltração</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Deterioração de estruturas">
+                        <span>Deterioração de estruturas</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Esquadria(s) emperrada(s)">
+                        <span>Esquadria(s) emperrada(s)</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Desprendimento de revestimento">
+                        <span>Desprendimento de revestimento</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="patologia" value="Outras">
+                        <span>Outras</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Localização das Anomalias -->
+            <div class="section">
+                <div class="section-title">Localização das Anomalias</div>
+                <div class="checkbox-grid">
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="localizacao" value="Paredes/esquadrias">
+                        <span>Paredes/esquadrias</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="localizacao" value="Laje/Teto">
+                        <span>Laje/Teto</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="localizacao" value="Vigas">
+                        <span>Vigas</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="localizacao" value="Pilares">
+                        <span>Pilares</span>
+                    </label>
+                    <label class="checkbox-item">
+                        <input type="checkbox" name="localizacao" value="Outros">
+                        <span>Outros</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Relatório de Vistoria -->
+            <div class="section">
+                <div class="section-title">Relatório de Vistoria</div>
+                <div class="field">
+                    <label>Descrição da Vistoria</label>
+                    <textarea id="relatorio" rows="5" placeholder="Descreva detalhadamente as condições encontradas durante a vistoria..." required></textarea>
+                </div>
+                <div class="field">
+                    <label>Providências/Encaminhamentos</label>
+                    <textarea id="providencias" rows="3" placeholder="Recomendações e encaminhamentos necessários..."></textarea>
+                </div>
+                <div class="field">
+                    <label>Legislação Aplicável</label>
+                    <input type="text" id="legislacao" value="Lei Federal N° 12.608, de 10 de abril de 2012.">
+                </div>
+            </div>
+
+            <!-- Agente Responsável -->
+            <div class="section">
+                <div class="section-title">Agente Responsável</div>
+                <div class="field">
+                    <label>Nome do Agente</label>
+                    <input type="text" id="agenteNome" required>
+                </div>
+                <div class="field">
+                    <label>Cargo</label>
+                    <input type="text" id="agenteCargo" placeholder="Ex: Assessor Executivo de Defesa Civil">
+                </div>
+                <div class="field">
+                    <label>Decreto/Portaria</label>
+                    <input type="text" id="agenteDecreto" placeholder="Ex: Decreto N°424/2025">
+                </div>
+            </div>
+
+            <!-- Fotos -->
+            <div class="section">
+                <div class="section-title">Relatório Fotográfico (máx. 4 fotos)</div>
+                <div class="photo-section">
+                    <label class="photo-btn" for="photoInput">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <circle cx="12" cy="13" r="4"/>
+                        </svg>
+                        Adicionar Fotos
+                    </label>
+                    <input type="file" id="photoInput" class="photo-input" accept="image/*" multiple capture="environment">
+                    <div class="photo-preview" id="photoPreview"></div>
+                    <p class="photo-limit-info">As fotos aparecerão em uma segunda página do PDF</p>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="submit-container">
+        <button type="button" class="submit-btn" onclick="generatePDF()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="12" y1="18" x2="12" y2="12"/>
+                <line x1="9" y1="15" x2="15" y2="15"/>
+            </svg>
+            Gerar Relatório PDF
+        </button>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <p>Gerando PDF...</p>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // Configurar data e hora atual
+        document.addEventListener('DOMContentLoaded', function() {
+            const now = new Date();
+            document.getElementById('data').value = now.toISOString().split('T')[0];
+            document.getElementById('horario').value = now.toTimeString().slice(0, 5);
+            
+            // Toggle visual para checkboxes e radios
+            document.querySelectorAll('.checkbox-item, .radio-item').forEach(item => {
+                const input = item.querySelector('input');
+                input.addEventListener('change', () => {
+                    if (input.type === 'checkbox') {
+                        item.classList.toggle('checked', input.checked);
+                    } else {
+                        document.querySelectorAll(`input[name="${input.name}"]`).forEach(radio => {
+                            radio.closest('.radio-item').classList.remove('checked');
+                        });
+                        item.classList.add('checked');
+                    }
+                });
+            });
+        });
+
+        // Gerenciamento de fotos - máximo 4
+        let photos = [];
+        
+        document.getElementById('photoInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            const remaining = 4 - photos.length;
+            
+            if (remaining <= 0) {
+                showToast('Máximo de 4 fotos atingido', 'error');
+                return;
+            }
+            
+            files.slice(0, remaining).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    photos.push({
+                        data: event.target.result,
+                        description: ''
+                    });
+                    renderPhotos();
+                };
+                reader.readAsDataURL(file);
+            });
+            e.target.value = '';
+        });
+
+        function renderPhotos() {
+            const preview = document.getElementById('photoPreview');
+            preview.innerHTML = photos.map((photo, index) => `
+                <div class="photo-item">
+                    <img src="${photo.data}" alt="Foto ${index + 1}">
+                    <button type="button" class="remove-photo" onclick="removePhoto(${index})">×</button>
+                    <input type="text" placeholder="Descrição da foto ${index + 1}" 
+                           value="${photo.description}" 
+                           onchange="updatePhotoDescription(${index}, this.value)">
+                </div>
+            `).join('');
+        }
+
+        function removePhoto(index) {
+            photos.splice(index, 1);
+            renderPhotos();
+        }
+
+        function updatePhotoDescription(index, value) {
+            photos[index].description = value;
+        }
+
+        // Obter valores marcados
+        function getCheckedValues(name) {
+            return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`))
+                .map(input => input.value);
+        }
+
+        function getRadioValue(name) {
+            const checked = document.querySelector(`input[name="${name}"]:checked`);
+            return checked ? checked.value : '';
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Formatar data
+        function formatDate(dateStr) {
+            const [year, month, day] = dateStr.split('-');
+            return `${day}/${month}/${year}`;
+        }
+
+        async function generatePDF() {
+            const form = document.getElementById('reportForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            const loading = document.getElementById('loadingOverlay');
+            loading.classList.add('active');
+
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                
+                const pageWidth = 210;
+                const pageHeight = 297;
+                const margin = 5;
+                const contentWidth = pageWidth - (margin * 2);
+                let y = margin;
+
+                // Cores
+                const orange = [232, 108, 40]; // #E86C28
+                const darkGray = [51, 51, 51];
+                const lightGray = [245, 245, 245];
+                const borderColor = [200, 200, 200];
+
+                // Helper: Cabeçalho de seção laranja
+                function drawSectionHeader(title, yPos) {
+                    doc.setFillColor(...orange);
+                    doc.rect(margin, yPos, contentWidth, 6, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(8);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(title, margin + 2, yPos + 4);
+                    doc.setTextColor(0, 0, 0);
+                    return yPos + 6;
+                }
+
+                // Helper: Desenhar checkbox
+                function drawCheckbox(x, yPos, label, checked, width = 38) {
+                    doc.setDrawColor(...borderColor);
+                    doc.setFillColor(255, 255, 255);
+                    doc.rect(x, yPos, width, 5, 'FD');
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    
+                    // Checkbox square
+                    doc.rect(x + 1, yPos + 1, 3, 3, 'D');
+                    if (checked) {
+                        doc.setFont('helvetica', 'bold');
+                        doc.text('X', x + 1.6, yPos + 3.5);
+                        doc.setFont('helvetica', 'normal');
+                    }
+                    
+                    doc.text(label, x + 5.5, yPos + 3.5);
+                }
+
+                // Helper: Desenhar célula com borda
+                function drawCell(x, yPos, width, height, content, bold = false) {
+                    doc.setDrawColor(...borderColor);
+                    doc.rect(x, yPos, width, height, 'D');
+                    doc.setFontSize(7);
+                    doc.setFont('helvetica', bold ? 'bold' : 'normal');
+                    doc.text(content, x + 1, yPos + 3.5);
+                }
+
+                // ========== CABEÇALHO PRINCIPAL ==========
+                doc.setFillColor(...orange);
+                doc.rect(margin, y, contentWidth, 8, 'F');
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'bold');
+                doc.text('RELATÓRIO DE VISTORIA DE RISCO', pageWidth / 2, y + 5.5, { align: 'center' });
+                y += 8;
+
+                // ========== DATA / N° / HORÁRIO ==========
+                const data = formatDate(document.getElementById('data').value);
+                const numero = document.getElementById('numero').value;
+                const horario = document.getElementById('horario').value;
+
+                doc.setTextColor(0, 0, 0);
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                
+                const headerCellW = contentWidth / 3;
+                drawCell(margin, y, headerCellW, 6, `DATA: ${data}`, true);
+                drawCell(margin + headerCellW, y, headerCellW, 6, `N°: ${numero}`, true);
+                drawCell(margin + headerCellW * 2, y, headerCellW, 6, `HORÁRIO: ${horario}`, true);
+                y += 6;
+
+                // ========== DEMANDA ==========
+                y = drawSectionHeader('DEMANDA', y);
+                
+                const demandas = getCheckedValues('demanda');
+                const demandaOpts = [
+                    ['Munícipe', 'Poder Judiciário / MP'],
+                    ['Denúncia', 'Monit. Defesa Civil Mun.'],
+                    ['Defesa Civil Est.', 'Poder Legislativo'],
+                    ['Ouvidoria', 'Monit. Defesa Civil Est.'],
+                    ['PGM', 'Outros']
+                ];
+                
+                const demandaCellW = contentWidth / 2;
+                demandaOpts.forEach(row => {
+                    drawCheckbox(margin, y, row[0], demandas.includes(row[0]), demandaCellW);
+                    drawCheckbox(margin + demandaCellW, y, row[1], demandas.includes(row[1]), demandaCellW);
+                    y += 5;
+                });
+
+                // ========== SOLICITAÇÃO ==========
+                y = drawSectionHeader('SOLICITAÇÃO', y);
+                
+                const solNome = document.getElementById('solicitanteNome').value;
+                const solTel = document.getElementById('solicitanteTelefone').value || '';
+                const tipoSol = getRadioValue('tipoSolicitante');
+                const solEmail = document.getElementById('solicitanteEmail').value || '';
+                const endereco = document.getElementById('endereco').value;
+                const quadra = document.getElementById('quadra').value || '';
+                const lote = document.getElementById('lote').value || '';
+                const bairro = document.getElementById('bairro').value;
+
+                // Linha 1: Nome e Telefone
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth * 0.6, 6, 'D');
+                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.4, 6, 'D');
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Nome:', margin + 1, y + 2.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solNome, margin + 12, y + 2.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Telefone:', margin + contentWidth * 0.6 + 1, y + 2.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solTel, margin + contentWidth * 0.6 + 18, y + 2.5);
+                
+                // Checkboxes do tipo de solicitante na mesma linha
+                const tipoX = margin + contentWidth * 0.6 + 1;
+                doc.rect(tipoX, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Proprietário/Morador') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 0.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(5);
+                doc.text('Prop./Morador', tipoX + 3.5, y + 5.5);
+                
+                doc.rect(tipoX + 23, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX + 23, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Responsável') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 23.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.text('Responsável', tipoX + 26.5, y + 5.5);
+                
+                doc.rect(tipoX + 45, y + 3, 10, 3.5, 'D');
+                doc.rect(tipoX + 45, y + 3, 3, 3.5, 'D');
+                if (tipoSol === 'Outro') { doc.setFont('helvetica', 'bold'); doc.text('X', tipoX + 45.7, y + 5.5); }
+                doc.setFont('helvetica', 'normal');
+                doc.text('Outro', tipoX + 48.5, y + 5.5);
+                
+                y += 6;
+
+                // Linha 2: E-mail
+                doc.setFontSize(7);
+                doc.rect(margin, y, contentWidth, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('E-mail:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(solEmail, margin + 14, y + 3.5);
+                y += 5;
+
+                // Linha 3: Endereço, Qd, Lote
+                doc.rect(margin, y, contentWidth * 0.6, 5, 'D');
+                doc.rect(margin + contentWidth * 0.6, y, contentWidth * 0.2, 5, 'D');
+                doc.rect(margin + contentWidth * 0.8, y, contentWidth * 0.2, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Endereço:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(endereco, margin + 18, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Qd:', margin + contentWidth * 0.6 + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(quadra, margin + contentWidth * 0.6 + 8, y + 3.5);
+                doc.setFont('helvetica', 'bold');
+                doc.text('Lote:', margin + contentWidth * 0.8 + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(lote, margin + contentWidth * 0.8 + 10, y + 3.5);
+                y += 5;
+
+                // Linha 4: Bairro
+                doc.rect(margin, y, contentWidth, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Bairro:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(bairro, margin + 14, y + 3.5);
+                y += 5;
+
+                // ========== TIPO DE OCORRÊNCIA ==========
+                y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
+                
+                const ocorrencias = getCheckedValues('tipoOcorrencia');
+                const ocorrCellW = contentWidth / 4;
+                ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'].forEach((opt, i) => {
+                    drawCheckbox(margin + i * ocorrCellW, y, opt, ocorrencias.includes(opt), ocorrCellW);
+                });
+                y += 5;
+
+                // ========== DESCRIÇÃO DA EDIFICAÇÃO ==========
+                y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
+                
+                // Tipo de Edificação
+                doc.setFontSize(6);
+                doc.setFont('helvetica', 'bold');
+                doc.text('TIPO DE EDIFICAÇÃO', margin + 1, y + 3);
+                const tiposEdif = getCheckedValues('tipoEdificacao');
+                const edifCellW = (contentWidth - 40) / 4;
+                ['Residencial', 'Comercial', 'Pública', 'Outras'].forEach((opt, i) => {
+                    drawCheckbox(margin + 40 + i * edifCellW, y, opt, tiposEdif.includes(opt), edifCellW);
+                });
+                y += 5;
+
+                // Estrutura
+                doc.setFont('helvetica', 'bold');
+                doc.text('ESTRUTURA', margin + 1, y + 3);
+                const estruturas = getCheckedValues('estrutura');
+                const estrutCellW = (contentWidth - 25) / 6;
+                const estrutOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
+                const estrutLabels = ['Alv. e concreto', 'Só alvenaria', 'Estr. metálica', 'Madeira/palafita', 'Conc. armado', 'Outros'];
+                estrutLabels.forEach((label, i) => {
+                    drawCheckbox(margin + 25 + i * estrutCellW, y, label, estruturas.includes(estrutOpts[i]), estrutCellW);
+                });
+                y += 5;
+
+                // Tipo de Cobertura
+                doc.setFont('helvetica', 'bold');
+                doc.text('TIPO DE COBERTURA', margin + 1, y + 3);
+                const coberturas = getCheckedValues('cobertura');
+                const cobCellW = (contentWidth - 45) / 4;
+                ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'].forEach((opt, i) => {
+                    drawCheckbox(margin + 45 + i * cobCellW, y, opt, coberturas.includes(opt), cobCellW);
+                });
+                y += 5;
+
+                // ========== MANIFESTAÇÕES PATOLÓGICAS ==========
+                y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
+                
+                const patologias = getCheckedValues('patologia');
+                const patOpts = [
+                    ['Trincas e fissuras', 'Corrosão de ferragens', 'Inclinação/recalques'],
+                    ['Infiltração', 'Deterioração de estruturas', 'Esquadria(s) emperrada(s)'],
+                    ['Desprendimento de revestimento', 'Outras', '']
+                ];
+                const patCellW = contentWidth / 3;
+                patOpts.forEach(row => {
+                    row.forEach((opt, i) => {
+                        if (opt) drawCheckbox(margin + i * patCellW, y, opt, patologias.includes(opt), patCellW);
+                    });
+                    y += 5;
+                });
+
+                // ========== LOCALIZAÇÃO DAS ANOMALIAS ==========
+                y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS VERIFICADAS', y);
+                
+                const localizacoes = getCheckedValues('localizacao');
+                const locCellW = contentWidth / 5;
+                ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'].forEach((opt, i) => {
+                    drawCheckbox(margin + i * locCellW, y, opt, localizacoes.includes(opt), locCellW);
+                });
+                y += 5;
+
+                // ========== RELATÓRIO DE VISTORIA ==========
+                y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
+                
+                const relatorio = document.getElementById('relatorio').value;
+                doc.setDrawColor(...borderColor);
+                doc.rect(margin, y, contentWidth, 35, 'D');
+                doc.setFontSize(7);
+                doc.setFont('helvetica', 'normal');
+                const relatorioLines = doc.splitTextToSize(relatorio, contentWidth - 4);
+                let relY = y + 4;
+                relatorioLines.slice(0, 10).forEach(line => {
+                    doc.text(line, margin + 2, relY);
+                    relY += 3.5;
+                });
+                y += 35;
+
+                // ========== PROVIDÊNCIAS ==========
+                y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
+                
+                const providencias = document.getElementById('providencias').value;
+                doc.rect(margin, y, contentWidth, 18, 'D');
+                const provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
+                let provY = y + 4;
+                provLines.slice(0, 5).forEach(line => {
+                    doc.text(line, margin + 2, provY);
+                    provY += 3.5;
+                });
+                y += 18;
+
+                // ========== LEGISLAÇÃO ==========
+                doc.rect(margin, y, contentWidth, 5, 'D');
+                doc.setFont('helvetica', 'bold');
+                doc.text('Legislação:', margin + 1, y + 3.5);
+                doc.setFont('helvetica', 'normal');
+                doc.text(document.getElementById('legislacao').value, margin + 20, y + 3.5);
+                y += 5;
+
+                // ========== ASSINATURA ==========
+                y += 5;
+                
+                const cidade = 'Cidade Ocidental';
+                const dataExtenso = new Date(document.getElementById('data').value + 'T12:00:00')
+                    .toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'normal');
+                doc.text(`${cidade}, ${dataExtenso}`, margin + 2, y);
+                y += 15;
+
+                // Linha de assinatura
+                doc.setDrawColor(0, 0, 0);
+                doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
+                y += 4;
+                
+                doc.setFontSize(8);
+                doc.setFont('helvetica', 'bold');
+                doc.text(document.getElementById('agenteNome').value, pageWidth / 2, y, { align: 'center' });
+                y += 4;
+                
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(7);
+                doc.text(document.getElementById('agenteCargo').value || 'Agente de Defesa Civil', pageWidth / 2, y, { align: 'center' });
+                y += 3;
+                doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
+
+                // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========
+                if (photos.length > 0) {
+                    doc.addPage();
+                    y = margin;
+
+                    // Cabeçalho laranja
+                    doc.setFillColor(...orange);
+                    doc.rect(margin, y, contentWidth, 8, 'F');
+                    doc.setTextColor(255, 255, 255);
+                    doc.setFontSize(11);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('RELATÓRIO FOTOGRÁFICO', pageWidth / 2, y + 5.5, { align: 'center' });
+                    y += 12;
+
+                    doc.setTextColor(0, 0, 0);
+
+                    // Grid 2x2 para fotos
+                    const imgWidth = 90;
+                    const imgHeight = 70;
+                    const imgMargin = 5;
+                    
+                    const positions = [
+                        { x: margin + imgMargin, y: y },
+                        { x: margin + imgWidth + imgMargin * 2, y: y },
+                        { x: margin + imgMargin, y: y + imgHeight + 25 },
+                        { x: margin + imgWidth + imgMargin * 2, y: y + imgHeight + 25 }
+                    ];
+
+                    const maxPhotos = Math.min(photos.length, 4);
+                    for (let i = 0; i < maxPhotos; i++) {
+                        const pos = positions[i];
+                        
+                        // Título da imagem
+                        doc.setFontSize(9);
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(`IMAGEM ${String(i + 1).padStart(2, '0')}`, pos.x + imgWidth / 2, pos.y, { align: 'center' });
+
+                        // Borda da imagem
+                        doc.setDrawColor(...orange);
+                        doc.setLineWidth(0.5);
+                        doc.rect(pos.x, pos.y + 3, imgWidth, imgHeight, 'D');
+
+                        try {
+                            doc.addImage(photos[i].data, 'JPEG', pos.x + 1, pos.y + 4, imgWidth - 2, imgHeight - 2);
+                        } catch (e) {
+                            console.error('Erro ao adicionar imagem:', e);
+                        }
+                        
+                        // Descrição
+                        if (photos[i].description) {
+                            doc.setFontSize(7);
+                            doc.setFont('helvetica', 'italic');
+                            const descLines = doc.splitTextToSize(photos[i].description, imgWidth);
+                            doc.text(descLines[0] || '', pos.x + imgWidth / 2, pos.y + imgHeight + 7, { align: 'center' });
+                        }
+                    }
+                }
+
+                // Salvar PDF
+                const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
+                doc.save(fileName);
+                
+                showToast('PDF gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+</html>
