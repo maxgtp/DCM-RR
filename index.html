@@ -404,8 +404,10 @@
 </head>
 <body>
     <header class="header">
-        <h1>DEFESA CIVIL MUNICIPAL</h1>
-        <p>Relatório Simplificado De Atendimento De Ocorrência</p>
+        <img src="public/images/logo1.png" alt="Logo 1" style="height:48px;max-width:80px;vertical-align:middle;float:left;margin-right:16px;object-fit:contain;">
+        <h1 style="display:inline-block;vertical-align:middle;margin-bottom:0;">DEFESA CIVIL MUNICIPAL</h1>
+        <img src="public/images/logo2.png" alt="Logo 2" style="height:48px;max-width:80px;vertical-align:middle;float:right;margin-left:16px;object-fit:contain;">
+        <p style="clear:both;">Relatório Simplificado De Atendimento De Ocorrência</p>
     </header>
 
     <div class="container">
@@ -996,10 +998,31 @@
                         loadImage(logo2Url)
                     ]);
                     
+                    // Ajustar proporções para logo1
+                    let logo1W = logoWidth, logo1H = logoHeight;
+                    if (logo1.width > logo1.height) {
+                        logo1H = logoHeight * (logo1.height / logo1.width);
+                        logo1W = logoWidth;
+                    } else {
+                        logo1W = logoWidth * (logo1.width / logo1.height);
+                        logo1H = logoHeight;
+                    }
+                    // Ajustar proporções para logo2
+                    let logo2W = logoWidth, logo2H = logoHeight;
+                    if (logo2.width > logo2.height) {
+                        logo2H = logoHeight * (logo2.height / logo2.width);
+                        logo2W = logoWidth;
+                    } else {
+                        logo2W = logoWidth * (logo2.width / logo2.height);
+                        logo2H = logoHeight;
+                    }
+                    // Centralizar verticalmente
+                    const logo1Y = y + (logoHeight - logo1H) / 2;
+                    const logo2Y = y + (logoHeight - logo2H) / 2;
                     // Logo SMSPT à esquerda
-                    doc.addImage(logo1, 'PNG', margin, y, logoWidth, logoHeight);
+                    doc.addImage(logo1, 'PNG', margin, logo1Y, logo1W, logo1H);
                     // Logo Defesa Civil à direita
-                    doc.addImage(logo2, 'PNG', pageWidth - margin - logoWidth, y, logoWidth, logoHeight);
+                    doc.addImage(logo2, 'PNG', pageWidth - margin - logo2W, logo2Y, logo2W, logo2H);
                 } catch (e) {
                     console.log('Erro ao carregar logos:', e);
                 }
@@ -1624,8 +1647,31 @@
                         loadImage(logo2Url)
                     ]);
                     
-                    doc.addImage(logo1, 'PNG', margin, y, logoWidth, logoHeight);
-                    doc.addImage(logo2, 'PNG', pageWidth - margin - logoWidth, y, logoWidth, logoHeight);
+                    // Ajustar proporções para logo1
+                    let logo1W = logoWidth, logo1H = logoHeight;
+                    if (logo1.width > logo1.height) {
+                        logo1H = logoHeight * (logo1.height / logo1.width);
+                        logo1W = logoWidth;
+                    } else {
+                        logo1W = logoWidth * (logo1.width / logo1.height);
+                        logo1H = logoHeight;
+                    }
+                    // Ajustar proporções para logo2
+                    let logo2W = logoWidth, logo2H = logoHeight;
+                    if (logo2.width > logo2.height) {
+                        logo2H = logoHeight * (logo2.height / logo2.width);
+                        logo2W = logoWidth;
+                    } else {
+                        logo2W = logoWidth * (logo2.width / logo2.height);
+                        logo2H = logoHeight;
+                    }
+                    // Centralizar verticalmente
+                    const logo1Y = y + (logoHeight - logo1H) / 2;
+                    const logo2Y = y + (logoHeight - logo2H) / 2;
+                    // Logo SMSPT à esquerda
+                    doc.addImage(logo1, 'PNG', margin, logo1Y, logo1W, logo1H);
+                    // Logo Defesa Civil à direita
+                    doc.addImage(logo2, 'PNG', pageWidth - margin - logo2W, logo2Y, logo2W, logo2H);
                 } catch (e) {
                     console.log('Erro ao carregar logos:', e);
                 }
