@@ -373,32 +373,105 @@
             font-size: 16px;
         }
 
-        .toast {
+        /* Modal styles for photo source selection */
+        .modal-overlay {
+            display: none;
             position: fixed;
-            bottom: 100px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: #333;
-            color: white;
-            padding: 12px 24px;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1002;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 320px;
+            width: calc(100% - 32px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1a1a2e;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            background: #fafafa;
+            border: 2px solid #E86C28;
             border-radius: 8px;
+            color: #E86C28;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-btn:hover {
+            background: #fff5f0;
+            transform: translateY(-2px);
+        }
+
+        .modal-btn svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .modal-btn-cancel {
+            background: #f8f9fa;
+            border-color: #6c757d;
+            color: #6c757d;
+        }
+
+        .modal-btn-cancel:hover {
+            background: #e9ecef;
+        }
+
+        /* Updated styles for agent signature section with centered layout */
+        .agent-signature {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .agent-signature .field {
+            width: 100%;
+            text-align: center;
+        }
+
+        .agent-signature .field input {
+            text-align: center;
+        }
+
+        .decreto-prefix {
+            display: inline-block;
             font-size: 14px;
-            opacity: 0;
-            transition: all 0.3s;
-            z-index: 1001;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-        .toast.error {
-            background: #dc3545;
-        }
-
-        .toast.success {
-            background: #28a745;
+            color: #4a5568;
+            margin-right: 4px;
         }
     </style>
 </head>
@@ -710,17 +783,24 @@
             <!-- Agente Responsável -->
             <div class="section">
                 <div class="section-title">Agente Responsável</div>
-                <div class="field">
-                    <label>Nome do Agente</label>
-                    <input type="text" id="agenteNome" required>
-                </div>
-                <div class="field">
-                    <label>Cargo</label>
-                    <input type="text" id="agenteCargo" placeholder="Ex: Assessor Executivo de Defesa Civil">
-                </div>
-                <div class="field">
-                    <label>Decreto/Portaria</label>
-                    <input type="text" id="agenteDecreto" placeholder="Ex: Decreto N°424/2025">
+                <!-- Centralized signature section with specific field order -->
+                <div class="agent-signature">
+                    <div class="field">
+                        <label>Nome do Agente</label>
+                        <input type="text" id="agenteNome" required>
+                    </div>
+                    <div class="field">
+                        <label>Cargo</label>
+                        <input type="text" id="agenteCargo" placeholder="Ex: Assessor Executivo de Defesa Civil">
+                    </div>
+                    <div class="field">
+                        <!-- Changed from "Decreto/Portaria" to fixed "Decreto" label -->
+                        <label>Decreto</label>
+                        <div style="display: flex; align-items: center; justify-content: center;">
+                            <span class="decreto-prefix">Decreto N° </span>
+                            <input type="text" id="agenteDecreto" placeholder="424/2025" style="width: auto; min-width: 150px; text-align: center;">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -728,14 +808,15 @@
             <div class="section">
                 <div class="section-title">Relatório Fotográfico</div>
                 <div class="photo-section">
-                    <label class="photo-btn" for="photoInput">
+                    <!-- Changed to button that opens modal for camera/gallery selection -->
+                    <button type="button" class="photo-btn" onclick="openPhotoModal()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                            <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
                             <circle cx="12" cy="13" r="4"/>
                         </svg>
                         Adicionar Fotos
-                    </label>
-                    <input type="file" id="photoInput" class="photo-input" accept="image/*" multiple capture="environment">
+                    </button>
+                    <input type="file" id="photoInput" class="photo-input" accept="image/*">
                     <div class="photo-preview" id="photoPreview"></div>
                     <p class="photo-limit-info">Imagens agrupadas em 2x6</p>
                 </div>
@@ -770,6 +851,33 @@
         <p>Gerando PDF...</p>
     </div>
 
+    <!-- Modal for photo source selection (Camera or Gallery) -->
+    <div class="modal-overlay" id="photoModal">
+        <div class="modal">
+            <h2 class="modal-title">Escolher Foto</h2>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="selectPhotoSource('camera')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                        <circle cx="12" cy="13" r="4"/>
+                    </svg>
+                    Câmera
+                </button>
+                <button class="modal-btn" onclick="selectPhotoSource('gallery')">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                    Galeria
+                </button>
+                <button class="modal-btn modal-btn-cancel" onclick="closePhotoModal()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="toast" id="toast"></div>
 
     <script>
@@ -795,8 +903,32 @@
             });
         });
 
+        function openPhotoModal() {
+            document.getElementById('photoModal').classList.add('active');
+        }
+
+        function closePhotoModal() {
+            document.getElementById('photoModal').classList.remove('active');
+        }
+
+        function selectPhotoSource(source) {
+            const photoInput = document.getElementById('photoInput');
+            
+            if (source === 'camera') {
+                photoInput.setAttribute('capture', 'environment');
+                photoInput.removeAttribute('multiple');
+            } else {
+                photoInput.removeAttribute('capture');
+                photoInput.setAttribute('multiple', 'multiple');
+            }
+            
+            photoInput.click();
+            closePhotoModal();
+        }
+
         // Gerenciamento de fotos - removido limite de 4 fotos
         let photos = [];
+        let lastGeneratedPDF = null;
         
         document.getElementById('photoInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
@@ -870,648 +1002,7 @@
             }
 
             const loading = document.getElementById('loadingOverlay');
-            loading.classList.add('active');
-
-            try {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                
-                const pageWidth = 210;
-                const pageHeight = 297;
-                const margin = 10;
-                const contentWidth = pageWidth - (margin * 2);
-                let y = margin;
-
-                // Cores
-                const orange = [232, 108, 40]; // #E86C28
-                const blue = [26, 35, 126]; // Azul escuro do exemplo
-                const lightGray = [245, 245, 245];
-                const borderColor = [200, 200, 200];
-
-                // Helper: Cabeçalho de seção (igual ao site - título laranja com linha embaixo)
-                function drawSectionHeader(title, yPos) {
-                    doc.setFontSize(7);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(...orange);
-                    doc.text(title.toUpperCase(), margin + 2, yPos + 3);
-                    // Linha laranja embaixo
-                    doc.setDrawColor(...orange);
-                    doc.setLineWidth(0.5);
-                    doc.line(margin + 2, yPos + 4, margin + contentWidth - 2, yPos + 4);
-                    doc.setTextColor(0, 0, 0);
-                    return yPos + 6;
-                }
-
-                function drawCheckbox(x, yPos, label, checked, width = 38) {
-                    // Garantir que o checkbox não ultrapasse a margem direita
-                    const maxX = pageWidth - margin;
-                    const safeWidth = Math.min(width - 2, maxX - x - 2);
-                    
-                    if (safeWidth < 10) return; // Não desenhar se muito pequeno
-                    
-                    // Desenhar card com borda (laranja se selecionado, cinza se não)
-                    doc.setLineWidth(0.3);
-                    if (checked) {
-                        doc.setDrawColor(...orange);
-                        doc.setFillColor(255, 245, 240); // #fff5f0
-                    } else {
-                        doc.setDrawColor(224, 224, 224); // #e0e0e0
-                        doc.setFillColor(250, 250, 250); // #fafafa
-                    }
-                    doc.rect(x, yPos, safeWidth, 5, 'FD');
-                    
-                    // Checkbox square
-                    const checkboxX = x + 1.5;
-                    const checkboxY = yPos + 1;
-                    if (checked) {
-                        // Quadrado laranja sólido
-                        doc.setFillColor(...orange);
-                        doc.setDrawColor(...orange);
-                        doc.rect(checkboxX, checkboxY, 3, 3, 'F');
-                        // Checkmark branco
-                        doc.setFont('helvetica', 'bold');
-                        doc.setFontSize(6);
-                        doc.setTextColor(255, 255, 255);
-                        doc.text('✓', checkboxX + 1.5, checkboxY + 2.3);
-                        doc.setTextColor(0, 0, 0);
-                    } else {
-                        // Quadrado vazio com borda preta
-                        doc.setDrawColor(0, 0, 0);
-                        doc.setLineWidth(0.2);
-                        doc.rect(checkboxX, checkboxY, 3, 3, 'D');
-                    }
-                    
-                    // Texto do label - truncar se necessário
-                    doc.setFontSize(6);
-                    doc.setFont('helvetica', 'normal');
-                    const maxTextWidth = safeWidth - 7;
-                    let displayLabel = label;
-                    while (doc.getTextWidth(displayLabel) > maxTextWidth && displayLabel.length > 3) {
-                        displayLabel = displayLabel.slice(0, -1);
-                    }
-                    if (displayLabel !== label) displayLabel += '..';
-                    doc.text(displayLabel, x + 5.5, yPos + 3.5);
-                }
-
-                // ========== CABEÇALHO PRINCIPAL (igual ao exemplo com logos) ==========
-                const logo1Url = 'public/images/logo1.png';
-                const logo2Url = 'public/images/logo2.png';
-                
-                const headerHeight = 18;
-                const logoWidth = 16;
-                const logoHeight = 16;
-                
-                // Área do cabeçalho central (entre as logos)
-                const centerX = margin + logoWidth + 2;
-                const centerWidth = contentWidth - (logoWidth * 2) - 4;
-                
-                // Fundo laranja para "DEFESA CIVIL MUNICIPAL"
-                doc.setFillColor(...orange);
-                doc.rect(centerX, y, centerWidth, 10, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(10);
-                doc.setFont('helvetica', 'bold');
-                doc.text('DEFESA CIVIL MUNICIPAL', centerX + centerWidth / 2, y + 6.5, { align: 'center' });
-                
-                // Faixa azul para subtítulo
-                doc.setFillColor(...blue);
-                doc.rect(centerX, y + 10, centerWidth, 6, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(6);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Relatório Simplificado De Atendimento De Ocorrência', centerX + centerWidth / 2, y + 14, { align: 'center' });
-                
-                // Carregar e adicionar logos
-                try {
-                    const loadImage = (url) => {
-                        return new Promise((resolve, reject) => {
-                            const img = new Image();
-                            img.crossOrigin = 'anonymous';
-                            img.onload = () => resolve(img);
-                            img.onerror = reject;
-                            img.src = url;
-                        });
-                    };
-                    
-                    const [logo1, logo2] = await Promise.all([
-                        loadImage(logo1Url),
-                        loadImage(logo2Url)
-                    ]);
-                    
-                    // Ajustar proporções para logo1
-                    let logo1W = logoWidth, logo1H = logoHeight;
-                    if (logo1.width > logo1.height) {
-                        logo1H = logoHeight * (logo1.height / logo1.width);
-                        logo1W = logoWidth;
-                    } else {
-                        logo1W = logoWidth * (logo1.width / logo1.height);
-                        logo1H = logoHeight;
-                    }
-                    // Ajustar proporções para logo2
-                    let logo2W = logoWidth, logo2H = logoHeight;
-                    if (logo2.width > logo2.height) {
-                        logo2H = logoHeight * (logo2.height / logo2.width);
-                        logo2W = logoWidth;
-                    } else {
-                        logo2W = logoWidth * (logo2.width / logo2.height);
-                        logo2H = logoHeight;
-                    }
-                    // Centralizar verticalmente
-                    const logo1Y = y + (logoHeight - logo1H) / 2;
-                    const logo2Y = y + (logoHeight - logo2H) / 2;
-                    // Logo SMSPT à esquerda
-                    doc.addImage(logo1, 'PNG', margin, logo1Y, logo1W, logo1H);
-                    // Logo Defesa Civil à direita
-                    doc.addImage(logo2, 'PNG', pageWidth - margin - logo2W, logo2Y, logo2W, logo2H);
-                } catch (e) {
-                    console.log('Erro ao carregar logos:', e);
-                }
-                
-                y += headerHeight;
-
-                // ========== IDENTIFICAÇÃO (igual ao site - seção com título) ==========
-                y += 2;
-                y = drawSectionHeader('IDENTIFICAÇÃO', y);
-                
-                const data = formatDate(document.getElementById('data').value);
-                const numero = document.getElementById('numero').value;
-                const horario = document.getElementById('horario').value;
-
-                // Campos sem bordas, apenas texto (igual ao site)
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.setTextColor(0, 0, 0);
-                doc.text('Data:', margin + 2, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(data, margin + 15, y + 3.5);
-                
-                doc.setFont('helvetica', 'bold');
-                doc.text('N°:', margin + contentWidth / 3, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(numero, margin + contentWidth / 3 + 10, y + 3.5);
-                
-                doc.setFont('helvetica', 'bold');
-                doc.text('Horário:', margin + (contentWidth * 2 / 3), y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(horario, margin + (contentWidth * 2 / 3) + 18, y + 3.5);
-                y += 6;
-
-                // ========== DEMANDA ==========
-                y += 2;
-                y = drawSectionHeader('DEMANDA', y);
-                
-                const demandas = getCheckedValues('demanda');
-                const demandaOpts = [
-                    ['Munícipe', 'Poder Judiciário / MP'],
-                    ['Denúncia', 'Monit. Defesa Civil Mun.'],
-                    ['Defesa Civil Est.', 'Poder Legislativo'],
-                    ['Ouvidoria', 'Monit. Defesa Civil Est.'],
-                    ['PGM', 'Outros']
-                ];
-                
-                const demandaGap = 4;
-                const demandaCellW = (contentWidth - demandaGap) / 2;
-                demandaOpts.forEach(row => {
-                    drawCheckbox(margin, y, row[0], demandas.includes(row[0]), demandaCellW);
-                    drawCheckbox(margin + demandaCellW + demandaGap, y, row[1], demandas.includes(row[1]), demandaCellW);
-                    y += 6;
-                });
-
-                // ========== SOLICITAÇÃO ==========
-                y += 2;
-                y = drawSectionHeader('SOLICITAÇÃO', y);
-                
-                const solNome = document.getElementById('solicitanteNome').value;
-                const solTel = document.getElementById('solicitanteTelefone').value || '';
-                const tipoSol = getRadioValue('tipoSolicitante');
-                const solEmail = document.getElementById('solicitanteEmail').value || '';
-                const endereco = document.getElementById('endereco').value;
-                const quadra = document.getElementById('quadra').value || '';
-                const lote = document.getElementById('lote').value || '';
-                const bairro = document.getElementById('bairro').value;
-
-                // Linha 1: Nome e Telefone
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Nome:', margin + 2, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(solNome, margin + 16, y + 3.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Telefone:', margin + contentWidth * 0.6, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(solTel, margin + contentWidth * 0.6 + 20, y + 3.5);
-                y += 5;
-                
-                const tipoGap = 3;
-                const tipoCardW = (contentWidth - tipoGap * 2) / 3;
-                const tipoCardH = 5;
-                
-                // Prop./Morador
-                if (tipoSol === 'Proprietário/Morador') {
-                    doc.setDrawColor(...orange);
-                    doc.setFillColor(255, 245, 240);
-                } else {
-                    doc.setDrawColor(224, 224, 224);
-                    doc.setFillColor(250, 250, 250);
-                }
-                doc.setLineWidth(0.3);
-                doc.rect(margin, y, tipoCardW, tipoCardH, 'FD');
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(0.2);
-                doc.ellipse(margin + 3, y + 2.5, 1.2, 1.2, 'D');
-                if (tipoSol === 'Proprietário/Morador') {
-                    doc.setFillColor(...orange);
-                    doc.ellipse(margin + 3, y + 2.5, 0.6, 0.6, 'F');
-                }
-                doc.setFontSize(6);
-                doc.setFont('helvetica', 'normal');
-                doc.text('Prop./Morador', margin + 6, y + 3.3);
-                
-                // Responsável
-                const respX = margin + tipoCardW + tipoGap;
-                if (tipoSol === 'Responsável') {
-                    doc.setDrawColor(...orange);
-                    doc.setFillColor(255, 245, 240);
-                } else {
-                    doc.setDrawColor(224, 224, 224);
-                    doc.setFillColor(250, 250, 250);
-                }
-                doc.setLineWidth(0.3);
-                doc.rect(respX, y, tipoCardW, tipoCardH, 'FD');
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(0.2);
-                doc.ellipse(respX + 3, y + 2.5, 1.2, 1.2, 'D');
-                if (tipoSol === 'Responsável') {
-                    doc.setFillColor(...orange);
-                    doc.ellipse(respX + 3, y + 2.5, 0.6, 0.6, 'F');
-                }
-                doc.text('Responsável', respX + 6, y + 3.3);
-                
-                // Outro
-                const outroX = margin + (tipoCardW + tipoGap) * 2;
-                if (tipoSol === 'Outro') {
-                    doc.setDrawColor(...orange);
-                    doc.setFillColor(255, 245, 240);
-                } else {
-                    doc.setDrawColor(224, 224, 224);
-                    doc.setFillColor(250, 250, 250);
-                }
-                doc.setLineWidth(0.3);
-                doc.rect(outroX, y, tipoCardW, tipoCardH, 'FD');
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(0.2);
-                doc.ellipse(outroX + 3, y + 2.5, 1.2, 1.2, 'D');
-                if (tipoSol === 'Outro') {
-                    doc.setFillColor(...orange);
-                    doc.ellipse(outroX + 3, y + 2.5, 0.6, 0.6, 'F');
-                }
-                doc.text('Outro', outroX + 6, y + 3.3);
-                
-                y += tipoCardH + 2;
-
-                // Linha 2: E-mail
-                doc.setFontSize(7);
-                doc.setFont('helvetica', 'bold');
-                doc.text('E-mail:', margin + 2, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(solEmail, margin + 16, y + 3.5);
-                y += 5;
-
-                // Linha 3: Endereço, Qd, Lote
-                doc.setFont('helvetica', 'bold');
-                doc.text('Endereço:', margin + 2, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(endereco, margin + 22, y + 3.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Qd:', margin + contentWidth * 0.65, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(quadra, margin + contentWidth * 0.65 + 10, y + 3.5);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Lote:', margin + contentWidth * 0.82, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(lote, margin + contentWidth * 0.82 + 12, y + 3.5);
-                y += 5;
-
-                // Linha 4: Bairro
-                doc.setFont('helvetica', 'bold');
-                doc.text('Bairro:', margin + 2, y + 3.5);
-                doc.setFont('helvetica', 'normal');
-                doc.text(bairro, margin + 16, y + 3.5);
-                y += 5;
-
-                // ========== TIPO DE OCORRÊNCIA ==========
-                y += 2;
-                y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
-                
-                const ocorrencias = getCheckedValues('tipoOcorrencia');
-                const ocorrGap = 3;
-                const ocorrCellW = (contentWidth - ocorrGap * 3) / 4;
-                ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'].forEach((opt, i) => {
-                    drawCheckbox(margin + i * (ocorrCellW + ocorrGap), y, opt, ocorrencias.includes(opt), ocorrCellW);
-                });
-                y += 6;
-
-                // ========== DESCRIÇÃO DA EDIFICAÇÃO ==========
-                y += 2;
-                y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
-                
-                doc.setFontSize(6);
-                doc.setFont('helvetica', 'bold');
-                doc.text('TIPO DE EDIFICAÇÃO', margin + 2, y + 3);
-                const tiposEdif = getCheckedValues('tipoEdificacao');
-                const edifGap = 2;
-                const edifCellW = (contentWidth - edifGap * 3) / 4;
-                ['Residencial', 'Comercial', 'Pública', 'Outras'].forEach((opt, i) => {
-                    drawCheckbox(margin + i * (edifCellW + edifGap), y + 4, opt, tiposEdif.includes(opt), edifCellW);
-                });
-                y += 10;
-
-                doc.setFont('helvetica', 'bold');
-                doc.text('ESTRUTURA', margin + 2, y + 3);
-                const estruturas = getCheckedValues('estrutura');
-                const estrutOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
-                const estrutLabels = ['Alv. e concreto', 'Só alvenaria', 'Estr. metálica', 'Madeira/palafita', 'Conc. armado', 'Outros'];
-                const estrutGap = 2;
-                const estrutCellW = (contentWidth - estrutGap * 2) / 3;
-                // Primeira linha (3 itens)
-                estrutLabels.slice(0, 3).forEach((label, i) => {
-                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y + 4, label, estruturas.includes(estrutOpts[i]), estrutCellW);
-                });
-                y += 10;
-                // Segunda linha (3 itens)
-                estrutLabels.slice(3, 6).forEach((label, i) => {
-                    drawCheckbox(margin + i * (estrutCellW + estrutGap), y, label, estruturas.includes(estrutOpts[i + 3]), estrutCellW);
-                });
-                y += 6;
-
-                doc.setFont('helvetica', 'bold');
-                doc.text('TIPO DE COBERTURA', margin + 2, y + 3);
-                const coberturas = getCheckedValues('cobertura');
-                const cobGap = 2;
-                const cobCellW = (contentWidth - cobGap * 3) / 4;
-                ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'].forEach((opt, i) => {
-                    drawCheckbox(margin + i * (cobCellW + cobGap), y + 4, opt, coberturas.includes(opt), cobCellW);
-                });
-                y += 10;
-
-                // ========== MANIFESTAÇÕES PATOLÓGICAS ==========
-                y += 2;
-                y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
-                
-                const patologias = getCheckedValues('patologia');
-                const patOpts = [
-                    ['Trincas e fissuras', 'Corrosão de ferragens'],
-                    ['Inclinação/recalques', 'Infiltração'],
-                    ['Deterioração de estruturas', 'Esquadria(s) emperrada(s)'],
-                    ['Desprendimento de revestimento', 'Outras']
-                ];
-                const patGap = 4;
-                const patCellW = (contentWidth - patGap) / 2;
-                patOpts.forEach(row => {
-                    row.forEach((opt, i) => {
-                        if (opt) drawCheckbox(margin + i * (patCellW + patGap), y, opt, patologias.includes(opt), patCellW);
-                    });
-                    y += 6;
-                });
-
-                // ========== LOCALIZAÇÃO DAS ANOMALIAS ==========
-                y += 2;
-                y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS VERIFICADAS', y);
-                
-                const localizacoes = getCheckedValues('localizacao');
-                const locGap = 3;
-                const locCellW = (contentWidth - locGap * 2) / 3;
-                const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
-                // Primeira linha
-                locOpts.slice(0, 3).forEach((opt, i) => {
-                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
-                });
-                y += 6;
-                // Segunda linha
-                locOpts.slice(3, 5).forEach((opt, i) => {
-                    drawCheckbox(margin + i * (locCellW + locGap), y, opt, localizacoes.includes(opt), locCellW);
-                });
-                y += 6;
-
-                // ========== RELATÓRIO DE VISTORIA ==========
-                y += 2;
-                y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
-                
-                const relatorio = document.getElementById('relatorio').value;
-                const providencias = document.getElementById('providencias').value;
-                
-                const espacoAssinatura = 20;
-                const espacoRestante = pageHeight - y - margin - espacoAssinatura;
-                
-                // Dividir espaço entre Relatório e Providências proporcionalmente
-                // Se ambos têm conteúdo, dividir igualmente; senão, dar mais espaço para quem tem
-                const relatorioTemConteudo = relatorio && relatorio.trim().length > 0;
-                const providenciasTemConteudo = providencias && providencias.trim().length > 0;
-                
-                let alturaRelatorio, alturaProvidencias;
-                const espacoParaCampos = espacoRestante - 12; // 12mm para headers e gaps
-                
-                if (relatorioTemConteudo && providenciasTemConteudo) {
-                    alturaRelatorio = espacoParaCampos * 0.5;
-                    alturaProvidencias = espacoParaCampos * 0.5;
-                } else if (relatorioTemConteudo) {
-                    alturaRelatorio = espacoParaCampos * 0.65;
-                    alturaProvidencias = espacoParaCampos * 0.35;
-                } else if (providenciasTemConteudo) {
-                    alturaRelatorio = espacoParaCampos * 0.35;
-                    alturaProvidencias = espacoParaCampos * 0.65;
-                } else {
-                    alturaRelatorio = espacoParaCampos * 0.5;
-                    alturaProvidencias = espacoParaCampos * 0.5;
-                }
-                
-                // Garantir alturas mínimas
-                alturaRelatorio = Math.max(alturaRelatorio, 12);
-                alturaProvidencias = Math.max(alturaProvidencias, 12);
-                
-                let fontSizeTexto = 7;
-                const linhaAltura = 3.5;
-                
-                // Testar se o conteúdo cabe com fonte 7
-                doc.setFontSize(fontSizeTexto);
-                let relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
-                let maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / linhaAltura);
-                
-                // Se não cabe, reduzir fonte
-                if (relatorioLines.length > maxLinhasRelatorio && relatorioTemConteudo) {
-                    fontSizeTexto = 6;
-                    doc.setFontSize(fontSizeTexto);
-                    relatorioLines = doc.splitTextToSize(relatorio || '', contentWidth - 4);
-                    maxLinhasRelatorio = Math.floor((alturaRelatorio - 4) / 3);
-                }
-                
-                doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth, alturaRelatorio, 'D');
-                doc.setFontSize(fontSizeTexto);
-                doc.setFont('helvetica', 'normal');
-                let relY = y + 4;
-                const linhaAlturaAjustada = fontSizeTexto === 6 ? 3 : 3.5;
-                relatorioLines.slice(0, maxLinhasRelatorio).forEach(line => {
-                    doc.text(line, margin + 2, relY);
-                    relY += linhaAlturaAjustada;
-                });
-                y += alturaRelatorio;
-
-                // ========== PROVIDÊNCIAS ==========
-                y += 2;
-                y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
-                
-                doc.setFontSize(fontSizeTexto);
-                let provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
-                let maxLinhasProv = Math.floor((alturaProvidencias - 4) / linhaAlturaAjustada);
-                
-                // Se não cabe, reduzir fonte ainda mais
-                if (provLines.length > maxLinhasProv && providenciasTemConteudo && fontSizeTexto > 5) {
-                    fontSizeTexto = 5;
-                    doc.setFontSize(fontSizeTexto);
-                    provLines = doc.splitTextToSize(providencias || '', contentWidth - 4);
-                    maxLinhasProv = Math.floor((alturaProvidencias - 4) / 2.5);
-                }
-                
-                doc.setDrawColor(...borderColor);
-                doc.rect(margin, y, contentWidth, alturaProvidencias, 'D');
-                doc.setFontSize(fontSizeTexto);
-                doc.setFont('helvetica', 'normal');
-                let provY = y + 4;
-                const linhaAlturaFinal = fontSizeTexto === 5 ? 2.5 : linhaAlturaAjustada;
-                provLines.slice(0, maxLinhasProv).forEach(line => {
-                    doc.text(line, margin + 2, provY);
-                    provY += linhaAlturaFinal;
-                });
-                y += alturaProvidencias;
-
-                // ========== ASSINATURA ==========
-                y += 3;
-                
-                const cidade = 'Cidade Ocidental';
-                const dataExtenso = new Date(document.getElementById('data').value + 'T12:00:00')
-                    .toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
-                
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'normal');
-                doc.text(`${cidade}, ${dataExtenso}`, margin + 2, y);
-                y += 8;
-
-                // Linha de assinatura
-                doc.setDrawColor(0, 0, 0);
-                doc.setLineWidth(0.5);
-                doc.line(pageWidth / 2 - 40, y, pageWidth / 2 + 40, y);
-                y += 4;
-                
-                doc.setFontSize(8);
-                doc.setFont('helvetica', 'bold');
-                doc.text(document.getElementById('agenteNome').value, pageWidth / 2, y, { align: 'center' });
-                y += 3;
-                
-                doc.setFont('helvetica', 'normal');
-                doc.setFontSize(7);
-                doc.text(document.getElementById('agenteCargo').value || 'Agente de Defesa Civil', pageWidth / 2, y, { align: 'center' });
-                y += 3;
-                doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
-
-                // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========  
-                if (photos.length > 0) {
-                    const cols = 2;
-                    const rows = 3;
-                    const photosPerPage = cols * rows;
-
-                    const imgGap = 5;
-                    const imgWidth = (contentWidth - imgGap) / cols;
-                    const imgHeight = imgWidth * 0.75;
-
-                    const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
-
-                    for (let page = 0; page < totalPhotoPages; page++) {
-                        doc.addPage();
-                        y = margin;
-
-                        // Cabeçalho laranja
-                        doc.setFillColor(...orange);
-                        doc.rect(margin, y, contentWidth, 8, 'F');
-                        doc.setTextColor(255, 255, 255);
-                        doc.setFontSize(11);
-                        doc.setFont('helvetica', 'bold');
-                        const pageLabel = totalPhotoPages > 1 ? ` (${page + 1}/${totalPhotoPages})` : '';
-                        doc.text(`RELATÓRIO FOTOGRÁFICO${pageLabel}`, pageWidth / 2, y + 5.5, { align: 'center' });
-                        y += 12;
-
-                        doc.setTextColor(0, 0, 0);
-
-                        const startIdx = page * photosPerPage;
-                        const endIdx = Math.min(startIdx + photosPerPage, photos.length);
-
-                        for (let i = startIdx; i < endIdx; i++) {
-                            const pagePos = i - startIdx;
-                            const col = pagePos % cols;
-                            const row = Math.floor(pagePos / cols);
-
-                            const x = margin + col * (imgWidth + imgGap);
-                            const yPos = y + row * (imgHeight + 18);
-
-                            const photoNum = i + 1;
-
-                            // Título
-                            // doc.setFontSize(8);
-                            // doc.setFont('helvetica', 'bold');
-                            // doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
-
-                            // Borda
-                            doc.setDrawColor(...orange);
-                            doc.setLineWidth(0.5);
-                            doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
-
-                            // Foto
-                            try {
-                                doc.addImage(
-                                    photos[i].data,
-                                    'JPEG',
-                                    x + 1,
-                                    yPos + 4,
-                                    imgWidth - 2,
-                                    imgHeight - 2
-                                );
-                            } catch (e) {
-                                console.error('Erro ao adicionar imagem:', e);
-                            }
-
-                            // Descrição
-                            if (photos[i].description) {
-                                doc.setFontSize(6);
-                                doc.setFont('helvetica', 'italic');
-                                const descLines = doc.splitTextToSize(photos[i].description, imgWidth - 4);
-                                doc.text(descLines[0] || '', x + imgWidth / 2, yPos + imgHeight + 6, { align: 'center' });
-                            }
-                        }
-                    }
-                }
-
-                // Salvar PDF
-                const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
-                doc.save(fileName);
-                
-                showToast('PDF gerado com sucesso!', 'success');
-                return doc;
-            } catch (error) {
-                console.error('Erro ao gerar PDF:', error);
-                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
-            } finally {
-                loading.classList.remove('active');
-            }
-        }
-
-        async function sharePDF() {
-            const form = document.getElementById('reportForm');
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-
-            const loading = document.getElementById('loadingOverlay');
+            loading.querySelector('p').textContent = 'Gerando PDF...'; // Reset text in case of previous share attempt
             loading.classList.add('active');
 
             try {
@@ -1584,29 +1075,7 @@
                     doc.text(displayLabel, x + 5.5, yPos + 3.5);
                 }
 
-                // Dados do formulário
-                const data = formatDate(document.getElementById('data').value);
-                const numero = document.getElementById('numero').value;
-                const horario = document.getElementById('horario').value;
-                const demandas = getCheckedValues('demanda');
-                const solNome = document.getElementById('solicitanteNome').value;
-                const solTel = document.getElementById('solicitanteTelefone').value || '';
-                const tipoSol = getRadioValue('tipoSolicitante');
-                const solEmail = document.getElementById('solicitanteEmail').value || '';
-                const endereco = document.getElementById('endereco').value;
-                const quadra = document.getElementById('quadra').value || '';
-                const lote = document.getElementById('lote').value || '';
-                const bairro = document.getElementById('bairro').value;
-                const ocorrencias = getCheckedValues('tipoOcorrencia');
-                const tiposEdif = getCheckedValues('tipoEdificacao');
-                const estruturas = getCheckedValues('estrutura');
-                const coberturas = getCheckedValues('cobertura');
-                const patologias = getCheckedValues('patologia');
-                const localizacoes = getCheckedValues('localizacao');
-                const relatorio = document.getElementById('relatorio').value;
-                const providencias = document.getElementById('providencias').value;
-
-                // CABEÇALHO
+                // ========== CABEÇALHO PRINCIPAL (igual ao exemplo com logos) ==========
                 const logo1Url = 'public/images/logo1.png';
                 const logo2Url = 'public/images/logo2.png';
                 
@@ -1647,7 +1116,6 @@
                         loadImage(logo2Url)
                     ]);
                     
-                    // Ajustar proporções para logo1
                     let logo1W = logoWidth, logo1H = logoHeight;
                     if (logo1.width > logo1.height) {
                         logo1H = logoHeight * (logo1.height / logo1.width);
@@ -1656,7 +1124,6 @@
                         logo1W = logoWidth * (logo1.width / logo1.height);
                         logo1H = logoHeight;
                     }
-                    // Ajustar proporções para logo2
                     let logo2W = logoWidth, logo2H = logoHeight;
                     if (logo2.width > logo2.height) {
                         logo2H = logoHeight * (logo2.height / logo2.width);
@@ -1665,12 +1132,9 @@
                         logo2W = logoWidth * (logo2.width / logo2.height);
                         logo2H = logoHeight;
                     }
-                    // Centralizar verticalmente
                     const logo1Y = y + (logoHeight - logo1H) / 2;
                     const logo2Y = y + (logoHeight - logo2H) / 2;
-                    // Logo SMSPT à esquerda
                     doc.addImage(logo1, 'PNG', margin, logo1Y, logo1W, logo1H);
-                    // Logo Defesa Civil à direita
                     doc.addImage(logo2, 'PNG', pageWidth - margin - logo2W, logo2Y, logo2W, logo2H);
                 } catch (e) {
                     console.log('Erro ao carregar logos:', e);
@@ -1678,28 +1142,37 @@
                 
                 y += headerHeight;
 
-                // IDENTIFICAÇÃO
+                // ========== IDENTIFICAÇÃO ==========
                 y += 2;
                 y = drawSectionHeader('IDENTIFICAÇÃO', y);
+                
+                const data = formatDate(document.getElementById('data').value);
+                const numero = document.getElementById('numero').value;
+                const horario = document.getElementById('horario').value;
+
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
                 doc.setTextColor(0, 0, 0);
                 doc.text('Data:', margin + 2, y + 3.5);
                 doc.setFont('helvetica', 'normal');
                 doc.text(data, margin + 15, y + 3.5);
+                
                 doc.setFont('helvetica', 'bold');
                 doc.text('N°:', margin + contentWidth / 3, y + 3.5);
                 doc.setFont('helvetica', 'normal');
                 doc.text(numero, margin + contentWidth / 3 + 10, y + 3.5);
+                
                 doc.setFont('helvetica', 'bold');
                 doc.text('Horário:', margin + (contentWidth * 2 / 3), y + 3.5);
                 doc.setFont('helvetica', 'normal');
                 doc.text(horario, margin + (contentWidth * 2 / 3) + 18, y + 3.5);
                 y += 6;
 
-                // DEMANDA
+                // ========== DEMANDA ==========
                 y += 2;
                 y = drawSectionHeader('DEMANDA', y);
+                
+                const demandas = getCheckedValues('demanda');
                 const demandaOpts = [
                     ['Munícipe', 'Poder Judiciário / MP'],
                     ['Denúncia', 'Monit. Defesa Civil Mun.'],
@@ -1707,6 +1180,7 @@
                     ['Ouvidoria', 'Monit. Defesa Civil Est.'],
                     ['PGM', 'Outros']
                 ];
+                
                 const demandaGap = 4;
                 const demandaCellW = (contentWidth - demandaGap) / 2;
                 demandaOpts.forEach(row => {
@@ -1715,9 +1189,19 @@
                     y += 6;
                 });
 
-                // SOLICITAÇÃO
+                // ========== SOLICITAÇÃO ==========
                 y += 2;
                 y = drawSectionHeader('SOLICITAÇÃO', y);
+                
+                const solNome = document.getElementById('solicitanteNome').value;
+                const solTel = document.getElementById('solicitanteTelefone').value || '';
+                const tipoSol = getRadioValue('tipoSolicitante');
+                const solEmail = document.getElementById('solicitanteEmail').value || '';
+                const endereco = document.getElementById('endereco').value;
+                const quadra = document.getElementById('quadra').value || '';
+                const lote = document.getElementById('lote').value || '';
+                const bairro = document.getElementById('bairro').value;
+
                 doc.setFontSize(7);
                 doc.setFont('helvetica', 'bold');
                 doc.text('Nome:', margin + 2, y + 3.5);
@@ -1729,7 +1213,6 @@
                 doc.text(solTel, margin + contentWidth * 0.6 + 20, y + 3.5);
                 y += 5;
                 
-                // Radio buttons
                 const tipoGap = 3;
                 const tipoCardW = (contentWidth - tipoGap * 2) / 3;
                 const tipoCardH = 5;
@@ -1821,9 +1304,11 @@
                 doc.text(bairro, margin + 16, y + 3.5);
                 y += 5;
 
-                // TIPO DE OCORRÊNCIA
+                // ========== TIPO DE OCORRÊNCIA ==========
                 y += 2;
                 y = drawSectionHeader('TIPO DE OCORRÊNCIA', y);
+                
+                const ocorrencias = getCheckedValues('tipoOcorrencia');
                 const ocorrGap = 3;
                 const ocorrCellW = (contentWidth - ocorrGap * 3) / 4;
                 ['Geológica', 'Estrutural', 'Hidrológica', 'Outras'].forEach((opt, i) => {
@@ -1831,13 +1316,14 @@
                 });
                 y += 6;
 
-                // DESCRIÇÃO DA EDIFICAÇÃO
+                // ========== DESCRIÇÃO DA EDIFICAÇÃO ==========
                 y += 2;
                 y = drawSectionHeader('DESCRIÇÃO DA EDIFICAÇÃO VISTORIADA', y);
                 
                 doc.setFontSize(6);
                 doc.setFont('helvetica', 'bold');
                 doc.text('TIPO DE EDIFICAÇÃO', margin + 2, y + 3);
+                const tiposEdif = getCheckedValues('tipoEdificacao');
                 const edifGap = 2;
                 const edifCellW = (contentWidth - edifGap * 3) / 4;
                 ['Residencial', 'Comercial', 'Pública', 'Outras'].forEach((opt, i) => {
@@ -1847,6 +1333,7 @@
 
                 doc.setFont('helvetica', 'bold');
                 doc.text('ESTRUTURA', margin + 2, y + 3);
+                const estruturas = getCheckedValues('estrutura');
                 const estrutOpts = ['Alvenaria e concreto', 'Somente alvenaria', 'Estrutura metálica', 'Estrutura de madeira/palafita', 'Concreto armado', 'Outros'];
                 const estrutLabels = ['Alv. e concreto', 'Só alvenaria', 'Estr. metálica', 'Madeira/palafita', 'Conc. armado', 'Outros'];
                 const estrutGap = 2;
@@ -1862,6 +1349,7 @@
 
                 doc.setFont('helvetica', 'bold');
                 doc.text('TIPO DE COBERTURA', margin + 2, y + 3);
+                const coberturas = getCheckedValues('cobertura');
                 const cobGap = 2;
                 const cobCellW = (contentWidth - cobGap * 3) / 4;
                 ['Laje', 'Telha cerâmica', 'Metálica/Zinco', 'Amianto'].forEach((opt, i) => {
@@ -1869,9 +1357,11 @@
                 });
                 y += 10;
 
-                // MANIFESTAÇÕES PATOLÓGICAS
+                // ========== MANIFESTAÇÕES PATOLÓGICAS ==========
                 y += 2;
                 y = drawSectionHeader('MANIFESTAÇÕES PATOLÓGICAS', y);
+                
+                const patologias = getCheckedValues('patologia');
                 const patOpts = [
                     ['Trincas e fissuras', 'Corrosão de ferragens'],
                     ['Inclinação/recalques', 'Infiltração'],
@@ -1887,9 +1377,11 @@
                     y += 6;
                 });
 
-                // LOCALIZAÇÃO DAS ANOMALIAS
+                // ========== LOCALIZAÇÃO DAS ANOMALIAS ==========
                 y += 2;
                 y = drawSectionHeader('LOCALIZAÇÃO DAS ANOMALIAS VERIFICADAS', y);
+                
+                const localizacoes = getCheckedValues('localizacao');
                 const locGap = 3;
                 const locCellW = (contentWidth - locGap * 2) / 3;
                 const locOpts = ['Paredes/esquadrias', 'Laje/Teto', 'Vigas', 'Pilares', 'Outros'];
@@ -1902,19 +1394,21 @@
                 });
                 y += 6;
 
-                // RELATÓRIO DE VISTORIA
+                // ========== RELATÓRIO DE VISTORIA ==========
                 y += 2;
                 y = drawSectionHeader('RELATÓRIO DE VISTORIA', y);
+                
+                const relatorio = document.getElementById('relatorio').value;
+                const providencias = document.getElementById('providencias').value;
                 
                 const espacoAssinatura = 20;
                 const espacoRestante = pageHeight - y - margin - espacoAssinatura;
                 
-                // Dividir espaço entre Relatório e Providências proporcionalmente
                 const relatorioTemConteudo = relatorio && relatorio.trim().length > 0;
                 const providenciasTemConteudo = providencias && providencias.trim().length > 0;
                 
                 let alturaRelatorio, alturaProvidencias;
-                const espacoParaCampos = espacoRestante - 12; // 12mm para headers e gaps
+                const espacoParaCampos = espacoRestante - 12;
                 
                 if (relatorioTemConteudo && providenciasTemConteudo) {
                     alturaRelatorio = espacoParaCampos * 0.5;
@@ -1959,7 +1453,7 @@
                 });
                 y += alturaRelatorio;
 
-                // PROVIDÊNCIAS
+                // ========== PROVIDÊNCIAS ==========
                 y += 2;
                 y = drawSectionHeader('PROVIDÊNCIAS / ENCAMINHAMENTOS', y);
                 
@@ -1986,7 +1480,7 @@
                 });
                 y += alturaProvidencias;
 
-                // ASSINATURA
+                // ========== ASSINATURA ==========
                 y += 3;
                 
                 const cidade = 'Cidade Ocidental';
@@ -2012,16 +1506,21 @@
                 doc.setFontSize(7);
                 doc.text(document.getElementById('agenteCargo').value || 'Agente de Defesa Civil', pageWidth / 2, y, { align: 'center' });
                 y += 3;
-                doc.text(document.getElementById('agenteDecreto').value || '', pageWidth / 2, y, { align: 'center' });
 
-                // FOTOS
+                const decretoNumero = document.getElementById('agenteDecreto').value;
+                const decretoTexto = decretoNumero ? `Decreto N° ${decretoNumero}` : '';
+                doc.text(decretoTexto, pageWidth / 2, y, { align: 'center' });
+
+                // ========== PÁGINA 2: RELATÓRIO FOTOGRÁFICO ==========  
                 if (photos.length > 0) {
                     const cols = 2;
                     const rows = 3;
                     const photosPerPage = cols * rows;
+
                     const imgGap = 5;
                     const imgWidth = (contentWidth - imgGap) / cols;
                     const imgHeight = imgWidth * 0.75;
+
                     const totalPhotoPages = Math.ceil(photos.length / photosPerPage);
 
                     for (let page = 0; page < totalPhotoPages; page++) {
@@ -2052,17 +1551,10 @@
 
                             const photoNum = i + 1;
 
-                            // Título
-                            // doc.setFontSize(8);
-                            // doc.setFont('helvetica', 'bold');
-                            // doc.text(`IMAGEM ${String(photoNum).padStart(2, '0')}`, x + imgWidth / 2, yPos, { align: 'center' });
-
-                            // Borda
                             doc.setDrawColor(...orange);
                             doc.setLineWidth(0.5);
                             doc.rect(x, yPos + 3, imgWidth, imgHeight, 'D');
 
-                            // Foto
                             try {
                                 doc.addImage(
                                     photos[i].data,
@@ -2076,7 +1568,6 @@
                                 console.error('Erro ao adicionar imagem:', e);
                             }
 
-                            // Descrição
                             if (photos[i].description) {
                                 doc.setFontSize(6);
                                 doc.setFont('helvetica', 'italic');
@@ -2090,6 +1581,53 @@
                 const pdfBlob = doc.output('blob');
                 const fileName = `RVR-DCM-${numero.replace('/', '-')}.pdf`;
                 
+                lastGeneratedPDF = { blob: pdfBlob, fileName: fileName };
+                
+                // Automatically download the PDF after generation
+                const url = URL.createObjectURL(pdfBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a); // Append to body to ensure it works in all browsers
+                a.click();
+                document.body.removeChild(a); // Clean up
+                URL.revokeObjectURL(url);
+
+                showToast('PDF gerado com sucesso!', 'success');
+            } catch (error) {
+                console.error('Erro ao gerar PDF:', error);
+                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+            } finally {
+                loading.classList.remove('active');
+            }
+        }
+
+        async function sharePDF() {
+            const form = document.getElementById('reportForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+
+            // If no PDF was generated yet, generate one first
+            if (!lastGeneratedPDF) {
+                showToast('Gerando PDF para compartilhar...', 'info');
+                await generatePDF();
+                
+                // After generating, try to share
+                if (!lastGeneratedPDF) {
+                    showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+                    return;
+                }
+            }
+
+            const loading = document.getElementById('loadingOverlay');
+            loading.querySelector('p').textContent = 'Compartilhando...';
+            loading.classList.add('active');
+
+            try {
+                const { blob: pdfBlob, fileName } = lastGeneratedPDF;
+                
                 if (navigator.share) {
                     try {
                         const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
@@ -2101,11 +1639,14 @@
                             });
                             showToast('PDF compartilhado com sucesso!', 'success');
                         } else {
+                            // Fallback to download if canShare is not available or file type not supported
                             const url = URL.createObjectURL(pdfBlob);
                             const a = document.createElement('a');
                             a.href = url;
                             a.download = fileName;
+                            document.body.appendChild(a);
                             a.click();
+                            document.body.removeChild(a);
                             URL.revokeObjectURL(url);
                             showToast('PDF baixado (compartilhamento não suportado)', 'success');
                         }
@@ -2113,27 +1654,34 @@
                         if (err.name !== 'AbortError') {
                             console.error('Erro ao compartilhar:', err);
                             showToast('Erro ao compartilhar. PDF será baixado.', 'error');
+                            // Fallback to download on error
                             const url = URL.createObjectURL(pdfBlob);
                             const a = document.createElement('a');
                             a.href = url;
                             a.download = fileName;
+                            document.body.appendChild(a);
                             a.click();
+                            document.body.removeChild(a);
                             URL.revokeObjectURL(url);
                         }
                     }
                 } else {
+                    // Browser doesn't support navigator.share
                     const url = URL.createObjectURL(pdfBlob);
                     const a = document.createElement('a');
                     a.href = url;
                     a.download = fileName;
+                    document.body.appendChild(a);
                     a.click();
+                    document.body.removeChild(a);
                     URL.revokeObjectURL(url);
                     showToast('PDF baixado (compartilhamento não disponível)', 'success');
                 }
             } catch (error) {
-                console.error('Erro ao gerar PDF:', error);
-                showToast('Erro ao gerar PDF. Tente novamente.', 'error');
+                console.error('Erro ao compartilhar PDF:', error);
+                showToast('Erro ao compartilhar PDF. Tente novamente.', 'error');
             } finally {
+                loading.querySelector('p').textContent = 'Gerando PDF...';
                 loading.classList.remove('active');
             }
         }
