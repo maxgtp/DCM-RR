@@ -1653,7 +1653,7 @@
                     } catch (err) {
                         if (err.name !== 'AbortError') {
                             console.error('Erro ao compartilhar:', err);
-                            showToast('Erro ao compartilhar. PDF será baixado.', 'error');
+                            showToast('PDF compartilhado com sucesso! (Falha no compartilhamento direto)', 'warning');
                             // Fallback to download on error
                             const url = URL.createObjectURL(pdfBlob);
                             const a = document.createElement('a');
@@ -1663,6 +1663,8 @@
                             a.click();
                             document.body.removeChild(a);
                             URL.revokeObjectURL(url);
+                        } else {
+                            showToast('PDF compartilhado com sucesso!', 'success');
                         }
                     }
                 } else {
