@@ -1,32 +1,7 @@
 // Script da página inicial (consulta de CPF)
-
-function initSupabase() {
-  // Implementação de initSupabase aqui
-}
-
-function formatCPF(value) {
-  // Implementação de formatCPF aqui
-}
-
-function cleanCPF(value) {
-  // Implementação de cleanCPF aqui
-}
-
-function validateCPF(value) {
-  // Implementação de validateCPF aqui
-}
-
-function getStatusClass(status) {
-  // Implementação de getStatusClass aqui
-}
-
-function formatDateTime(date) {
-  // Implementação de formatDateTime aqui
-}
-
-function generatePDF(data, protocolo) {
-  // Implementação de generatePDF aqui
-}
+// Importações necessárias
+import { initSupabase } from "./utils.js"
+import { formatCPF, cleanCPF, validateCPF, getStatusClass, formatDateTime, generatePDF } from "./config.js"
 
 document.addEventListener("DOMContentLoaded", () => {
   const supabase = initSupabase()
