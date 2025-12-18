@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defesa Civil - Consulta de Atendimentos</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Defesa Civil</h1>
+                    <span>Prefeitura Municipal</span>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="login.html" class="btn btn-outline">Área do Agente</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="hero">
+            <h2>Consulta de Atendimentos</h2>
+            <p>Digite seu CPF para verificar o status dos seus atendimentos junto à Defesa Civil</p>
+        </section>
+
+        <section class="lookup-section">
+            <div class="lookup-card">
+                <form id="cpf-form" class="lookup-form">
+                    <div class="form-group">
+                        <label for="cpf">CPF do Cidadão</label>
+                        <input 
+                            type="text" 
+                            id="cpf" 
+                            name="cpf" 
+                            placeholder="000.000.000-00"
+                            maxlength="14"
+                            required
+                        >
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full" id="search-btn">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                        Consultar
+                    </button>
+                </form>
+
+                <div id="results" class="results-section" style="display: none;">
+                    <h3>Resultados da Consulta</h3>
+                    <div id="results-list"></div>
+                </div>
+
+                <div id="no-results" class="no-results" style="display: none;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="m15 9-6 6"/>
+                        <path d="m9 9 6 6"/>
+                    </svg>
+                    <p>Nenhum atendimento encontrado para este CPF</p>
+                </div>
+
+                <div id="error-message" class="error-message" style="display: none;"></div>
+            </div>
+        </section>
+
+        <section class="info-section">
+            <div class="info-cards">
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                        </svg>
+                    </div>
+                    <h4>Telefone</h4>
+                    <p>199 - Defesa Civil</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                        </svg>
+                    </div>
+                    <h4>Horário</h4>
+                    <p>24 horas</p>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                    </div>
+                    <h4>Endereço</h4>
+                    <p>Sede da Prefeitura</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2025 Defesa Civil - Prefeitura Municipal. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>
