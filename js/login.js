@@ -1,16 +1,7 @@
 // Script da página de login
 
-function isAuthenticated() {
-  // Implementação da função isAuthenticated
-  // Exemplo: return localStorage.getItem('authToken') !== null;
-  return false // Substitua pela implementação real
-}
-
-function doLogin(password) {
-  // Implementação da função doLogin
-  // Exemplo: return password === 'senhaCorreta';
-  return false // Substitua pela implementação real
-}
+// Importando as funções isAuthenticated e doLogin do config.js
+const { isAuthenticated, doLogin } = require("./config.js")
 
 document.addEventListener("DOMContentLoaded", () => {
   // Se já autenticado, redireciona para o painel
