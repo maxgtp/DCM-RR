@@ -225,7 +225,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 
   tituloSecao("8", "RELATÓRIO DE VISTORIA")
 
-  if (dados.grau_risco) {
+  if (dados.classificacao_risco) {
     blocoFundo(rowH)
     doc.setFontSize(7)
     doc.setFont("helvetica", "bold")
@@ -233,14 +233,16 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 
     // Cor de fundo baseada no grau de risco
     var corRisco = [100, 100, 100] // cinza padrão
-    if (dados.grau_risco === "R1 - Risco Baixo") corRisco = [34, 197, 94]
-    else if (dados.grau_risco === "R2 - Risco Médio") corRisco = [234, 179, 8]
-    else if (dados.grau_risco === "R3 - Risco Alto") corRisco = [249, 115, 22]
-    else if (dados.grau_risco === "R4 - Risco Muito Alto") corRisco = [220, 38, 38]
+    if (dados.classificacao_risco === "Baixo") corRisco = [34, 197, 94]
+    else if (dados.classificacao_risco === "Médio") corRisco = [234, 179, 8]
+    else if (dados.classificacao_risco === "Alto") corRisco = [249, 115, 22]
+    else if (dados.classificacao_risco === "Crítico") corRisco = [220, 38, 38]
 
     doc.setFillColor(...corRisco)
     doc.roundedRect(margin, y, contentWidth, rowH, 1.5, 1.5, "F")
-    doc.text("GRAU DE RISCO: " + dados.grau_risco.toUpperCase(), pageWidth / 2, y + 4.5, { align: "center" })
+    doc.text("CLASSIFICAÇÃO DE RISCO: " + dados.classificacao_risco.toUpperCase(), pageWidth / 2, y + 4.5, {
+      align: "center",
+    })
     doc.setTextColor(0)
     y += rowH + 3
   }
