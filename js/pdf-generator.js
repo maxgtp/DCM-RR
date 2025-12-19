@@ -230,7 +230,7 @@ tituloSecao("8", "RELATÓRIO DE VISTORIA")
 
 function blocoTextoRotulado(rotulo, conteudo) {
   verificarQuebra(12)
-  y += 5
+  y += 3
   // Rótulo
   doc.setFontSize(6)
   doc.setFont("helvetica", "bold")
@@ -247,7 +247,7 @@ function blocoTextoRotulado(rotulo, conteudo) {
   doc.setTextColor(0)
   doc.text(linhas, margin + 2, y + 4)
 
-  y += altura
+  y += altura + 3
 }
 
 blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
