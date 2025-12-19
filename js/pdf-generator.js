@@ -38,10 +38,7 @@ function carregarImagemBase64(url) {
 function carregarLogos() {
   if (logosCarregadas.carregado) return Promise.resolve(logosCarregadas)
 
-  return Promise.all([
-    carregarImagemBase64(LOGO1_URL),
-    carregarImagemBase64(LOGO2_URL),
-  ]).then((res) => {
+  return Promise.all([carregarImagemBase64(LOGO1_URL), carregarImagemBase64(LOGO2_URL)]).then((res) => {
     logosCarregadas.logo1 = res[0]
     logosCarregadas.logo2 = res[1]
     logosCarregadas.carregado = true
@@ -180,7 +177,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     "Endereço",
     `${dados.endereco || ""} - ${dados.bairro || ""} - ${dados.cidade || ""} CEP ${dados.cep || ""}`,
     margin + 2,
-    contentWidth
+    contentWidth,
   )
   y += rowH + 4
 
@@ -226,35 +223,34 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   doc.text((dados.local_anomalia || []).join(", ") || "-", margin + 2, y + 4)
   y += rowH + 4
 
-tituloSecao("8", "RELATÓRIO DE VISTORIA")
+  tituloSecao("8", "RELATÓRIO DE VISTORIA")
 
-function blocoTextoRotulado(rotulo, conteudo) {
-  verificarQuebra(12)
-  y += 3
-  // Rótulo
-  doc.setFontSize(6)
-  doc.setFont("helvetica", "bold")
-  doc.setTextColor(corSecundaria[0], corSecundaria[1], corSecundaria[2])
-  doc.text(rotulo, margin, y)
+  function blocoTextoRotulado(rotulo, conteudo) {
+    verificarQuebra(12)
+    y += 3
+    // Rótulo
+    doc.setFontSize(6)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(corSecundaria[0], corSecundaria[1], corSecundaria[2])
+    doc.text(rotulo, margin, y)
 
-  // Conteúdo
-  var linhas = doc.splitTextToSize(conteudo || "-", contentWidth - 4)
-  var altura = linhas.length * 3 + 3
+    // Conteúdo
+    var linhas = doc.splitTextToSize(conteudo || "-", contentWidth - 4)
+    var altura = linhas.length * 3 + 3
 
-  blocoFundo(altura)
-  doc.setFontSize(7)
-  doc.setFont("helvetica", "normal")
-  doc.setTextColor(0)
-  doc.text(linhas, margin + 2, y + 4)
+    blocoFundo(altura)
+    doc.setFontSize(7)
+    doc.setFont("helvetica", "normal")
+    doc.setTextColor(0)
+    doc.text(linhas, margin + 2, y + 4)
 
-  y += altura + 3
-}
+    y += altura + 3
+  }
 
-blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
-blocoTextoRotulado("ANÁLISE TÉCNICA", dados.analise_tecnica)
-blocoTextoRotulado("RECOMENDAÇÕES", dados.recomendacoes)
-blocoTextoRotulado("PARECER FINAL", dados.parecer_final)
-
+  blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
+  blocoTextoRotulado("ANÁLISE TÉCNICA", dados.analise_tecnica)
+  blocoTextoRotulado("RECOMENDAÇÕES", dados.recomendacoes)
+  blocoTextoRotulado("PARECER FINAL", dados.parecer_final)
 
   tituloSecao("9", "AGENTE RESPONSÁVEL")
   blocoFundo(rowH)
@@ -268,30 +264,42 @@ blocoTextoRotulado("PARECER FINAL", dados.parecer_final)
   doc.text("Assinatura do Agente Responsável", pageWidth / 2, y + 4, { align: "center" })
 
   // ===============================
-  // REGISTRO FOTOGRÁFICO (INALTERADO)
+  // REGISTRO FOTOGRÁFICO (CENTRALIZADO)
   // ===============================
   if ((dados.fotos || []).length > 0) {
     doc.addPage()
     y = 12
 
     tituloSecao("10", "REGISTRO FOTOGRÁFICO")
-    
-    var imgW = 88
-    var imgH = 66
-    var gap = 4
+
+    var imgW = 80
+    var imgH = 60
+    var gap = 8
+
+    var totalLargura = imgW * 2 + gap
+    var startX = (pageWidth - totalLargura) / 2
 
     dados.fotos.forEach((foto, i) => {
       var col = i % 2
-      var x = margin + col * (imgW + gap)
+      var x = startX + col * (imgW + gap)
 
-      if (col === 0 && i > 0) y += imgH + 14
+      if (col === 0 && i > 0) y += imgH + 8 // Reduzido espaçamento sem legenda
       if (y + imgH > pageHeight - 20) {
         doc.addPage()
         y = 10
       }
 
-      doc.roundedRect(x - 1, y - 1, imgW + 2, imgH + 2, 2, 2)
-      doc.addImage(foto.data, "JPEG", x, y, imgW, imgH)
+      try {
+        doc.setDrawColor(200)
+        doc.roundedRect(x - 1, y - 1, imgW + 2, imgH + 2, 2, 2, "S")
+        doc.addImage(foto.data, "JPEG", x, y, imgW, imgH)
+      } catch (e) {
+        doc.setFillColor(240, 240, 240)
+        doc.roundedRect(x, y, imgW, imgH, 2, 2, "F")
+        doc.setFontSize(8)
+        doc.setTextColor(150)
+        doc.text("Erro ao carregar", x + imgW / 2, y + imgH / 2, { align: "center" })
+      }
     })
   }
 
@@ -319,6 +327,6 @@ function generatePDF(dados, protocolo) {
 
 function downloadPDF(dados, protocolo) {
   carregarLogos().then((logos) =>
-    criarDocumentoPDF(dados, protocolo, logos).save(`relatorio_${protocolo || "vistoria"}.pdf`)
+    criarDocumentoPDF(dados, protocolo, logos).save(`relatorio_${protocolo || "vistoria"}.pdf`),
   )
 }
