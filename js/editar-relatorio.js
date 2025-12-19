@@ -2,17 +2,12 @@
 // Usa funções globais de config.js e utils.js
 
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("[v0] URL completa:", window.location.href)
-  console.log("[v0] Search params:", window.location.search)
-
   // Verifica autenticação
   if (!window.requireAuth()) return
 
   // Pega o ID do relatório da URL
   var urlParams = new URLSearchParams(window.location.search)
   var reportId = urlParams.get("id")
-
-  console.log("[v0] Report ID obtido:", reportId)
 
   if (!reportId) {
     alert("ID do relatório não informado")
@@ -25,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   var form = document.getElementById("report-form")
   var loadingEdit = document.getElementById("loading-edit")
-  var generatePdfBtn = document.getElementById("generate-pdf-btn")
   var fotoInput = document.getElementById("fotos")
   var fotoPreview = document.getElementById("foto-preview")
   var uploadedPhotos = []
@@ -153,39 +147,41 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Preview de novas fotos
-  fotoInput.addEventListener("change", (e) => {
-    var files = Array.from(e.target.files)
+  if (fotoInput) {
+    fotoInput.addEventListener("change", (e) => {
+      var files = Array.from(e.target.files)
 
-    files.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        var reader = new FileReader()
-        reader.onload = (event) => {
-          uploadedPhotos.push({
-            name: file.name,
-            data: event.target.result,
-          })
-          renderPhotoPreview()
+      files.forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          var reader = new FileReader()
+          reader.onload = (event) => {
+            uploadedPhotos.push({
+              name: file.name,
+              data: event.target.result,
+            })
+            renderPhotoPreview()
+          }
+          reader.readAsDataURL(file)
         }
-        reader.readAsDataURL(file)
-      }
+      })
     })
-  })
+  }
 
   // Formatação de telefone
-  document.getElementById("telefone").addEventListener("input", (e) => {
-    e.target.value = window.formatPhone(e.target.value)
-  })
+  var telefoneInput = document.getElementById("telefone")
+  if (telefoneInput) {
+    telefoneInput.addEventListener("input", (e) => {
+      e.target.value = window.formatPhone(e.target.value)
+    })
+  }
 
   // Formatação de CEP
-  document.getElementById("cep").addEventListener("input", (e) => {
-    e.target.value = window.formatCEP(e.target.value)
-  })
-
-  // Gerar PDF
-  generatePdfBtn.addEventListener("click", () => {
-    var dados = collectFormData()
-    window.generatePDF(dados, dados.protocolo)
-  })
+  var cepInput = document.getElementById("cep")
+  if (cepInput) {
+    cepInput.addEventListener("input", (e) => {
+      e.target.value = window.formatCEP(e.target.value)
+    })
+  }
 
   // Submeter formulário (atualizar)
   form.addEventListener("submit", (e) => {
