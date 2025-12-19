@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       html += '<div class="report-item-actions">'
       html +=
         '<button class="btn btn-primary btn-small" onclick="viewReportDetails(\'' + report.id + "')\">Ver PDF</button>"
-      html += '<button class="btn btn-outline btn-small" onclick="editReport(\'' + report.id + "')\">Editar</button>"
+      html += '<button class="btn btn-success btn-small" onclick="editReport(\'' + report.id + "')\">Editar</button>"
       html +=
         '<button class="btn btn-secondary btn-small" onclick="updateStatus(\'' +
         report.id +
