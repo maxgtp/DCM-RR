@@ -274,15 +274,75 @@ function criarDocumentoPDF(dados, protocolo) {
   y += 5
   doc.setFontSize(9)
   doc.text("Assinatura do Agente", pageWidth / 2, y, { align: "center" })
+  y += 15
+
+  // Seção 10: Registro Fotográfico
+  var fotos = dados.fotos || []
+  if (fotos.length > 0) {
+    checkPageBreak(50)
+    y += 5
+    doc.setFillColor(234, 88, 12)
+    doc.rect(margin, y, contentWidth, 8, "F")
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(11)
+    doc.setFont("helvetica", "bold")
+    doc.text("10. REGISTRO FOTOGRÁFICO", margin + 3, y + 6)
+    y += 15
+
+    doc.setTextColor(0, 0, 0)
+    doc.setFontSize(10)
+    doc.setFont("helvetica", "normal")
+
+    var imgWidth = 80
+    var imgHeight = 60
+    var imgsPerRow = 2
+    var imgSpacing = 10
+
+    for (var fotoIndex = 0; fotoIndex < fotos.length; fotoIndex++) {
+      var foto = fotos[fotoIndex]
+      var col = fotoIndex % imgsPerRow
+      var xPos = margin + col * (imgWidth + imgSpacing)
+
+      // Nova linha de imagens
+      if (col === 0 && fotoIndex > 0) {
+        y += imgHeight + 15
+      }
+
+      // Verifica quebra de página
+      checkPageBreak(imgHeight + 20)
+
+      try {
+        // Adiciona a imagem
+        doc.addImage(foto.data, "JPEG", xPos, y, imgWidth, imgHeight)
+
+        // Adiciona legenda da foto
+        doc.setFontSize(8)
+        doc.text(
+          "Foto " + (fotoIndex + 1) + (foto.name ? ": " + foto.name.substring(0, 30) : ""),
+          xPos,
+          y + imgHeight + 5,
+        )
+      } catch (e) {
+        // Se falhar ao adicionar imagem, mostra placeholder
+        doc.setDrawColor(200, 200, 200)
+        doc.rect(xPos, y, imgWidth, imgHeight)
+        doc.setFontSize(8)
+        doc.text("Imagem " + (fotoIndex + 1) + " indisponível", xPos + 10, y + imgHeight / 2)
+      }
+    }
+
+    // Ajusta y após última linha de imagens
+    y += imgHeight + 20
+  }
 
   // Rodapé
   var pageCount = doc.internal.getNumberOfPages()
-  for (var i = 1; i <= pageCount; i++) {
-    doc.setPage(i)
+  for (var pageIndex = 1; pageIndex <= pageCount; pageIndex++) {
+    doc.setPage(pageIndex)
     doc.setFontSize(8)
     doc.setTextColor(128, 128, 128)
     doc.text(
-      "Defesa Civil - Prefeitura Municipal | Página " + i + " de " + pageCount,
+      "Defesa Civil - Prefeitura Municipal | Página " + pageIndex + " de " + pageCount,
       pageWidth / 2,
       doc.internal.pageSize.getHeight() - 10,
       { align: "center" },
