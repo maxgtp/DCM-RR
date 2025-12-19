@@ -23,8 +23,13 @@ document.addEventListener("DOMContentLoaded", () => {
   var cancelDelete = document.getElementById("cancel-delete")
   var confirmDelete = document.getElementById("confirm-delete")
 
+  var statusModal = document.getElementById("status-modal")
+  var cancelStatus = document.getElementById("cancel-status")
+  var confirmStatus = document.getElementById("confirm-status")
+
   var reports = []
   var deleteId = null
+  var statusChangeId = null
 
   // Carrega relatórios iniciais
   loadReports()
@@ -164,10 +169,10 @@ document.addEventListener("DOMContentLoaded", () => {
         "')\">Baixar PDF</button>"
       html += '<button class="btn btn-success btn-small" onclick="editReport(\'' + report.id + "')\">Editar</button>"
       html +=
-        '<button class="btn btn-secondary btn-small" onclick="updateStatus(\'' +
+        '<button class="btn btn-secondary btn-small" onclick="openStatusModal(\'' +
         report.id +
         "', '" +
-        report.status +
+        (report.status || "Pendente") +
         "')\">Alterar Status</button>"
       html +=
         '<button class="btn btn-danger btn-small" onclick="confirmDeleteReport(\'' + report.id + "')\">Excluir</button>"
@@ -187,30 +192,54 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.editReport = (id) => {
-    console.log("[v0] Editando relatório com ID:", id)
     window.location.href = "editar-relatorio.html?id=" + encodeURIComponent(id)
   }
 
-  window.updateStatus = (id, currentStatus) => {
-    var statuses = ["Pendente", "Em Análise", "Concluído"]
-    var currentIndex = statuses.indexOf(currentStatus || "Pendente")
-    var nextStatus = statuses[(currentIndex + 1) % statuses.length]
+  window.openStatusModal = (id, currentStatus) => {
+    statusChangeId = id
+    // Marca o status atual como selecionado
+    var radios = document.querySelectorAll('input[name="new-status"]')
+    radios.forEach((radio) => {
+      radio.checked = radio.value === currentStatus
+    })
+    statusModal.classList.add("show")
+  }
+
+  cancelStatus.addEventListener("click", () => {
+    statusModal.classList.remove("show")
+    statusChangeId = null
+  })
+
+  confirmStatus.addEventListener("click", () => {
+    if (!statusChangeId) return
+
+    var selectedRadio = document.querySelector('input[name="new-status"]:checked')
+    if (!selectedRadio) {
+      window.showToast("Selecione um status", "error")
+      return
+    }
+
+    var newStatus = selectedRadio.value
 
     supabase
       .from("relatorios")
-      .update({ status: nextStatus })
-      .eq("id", id)
+      .update({ status: newStatus })
+      .eq("id", statusChangeId)
       .then((response) => {
         if (response.error) throw response.error
 
-        window.showToast("Status alterado para: " + nextStatus, "success")
+        window.showToast("Status alterado para: " + newStatus, "success")
         loadReports()
       })
       .catch((err) => {
         console.error("Erro ao atualizar:", err)
         window.showToast("Erro ao atualizar status", "error")
       })
-  }
+      .finally(() => {
+        statusModal.classList.remove("show")
+        statusChangeId = null
+      })
+  })
 
   window.confirmDeleteReport = (id) => {
     deleteId = id
