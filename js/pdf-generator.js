@@ -312,7 +312,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
       if (col === 0 && i > 0) y += imgH + 8
       if (y + imgH > pageHeight - 20) {
         doc.addPage()
-        y = 10
+        y = 20
       }
 
       try {
