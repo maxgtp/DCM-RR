@@ -66,7 +66,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 
   // Cores
   var corPrimaria = [30, 58, 95]
-  var corSecundaria = [234, 88, 12]
+  var corSecundaria = [209, 126, 16]
   var corFundo = [245, 245, 245]
 
   // -------------------------------
