@@ -115,7 +115,9 @@ document.addEventListener("DOMContentLoaded", () => {
       html += "</div>"
       html += '<div class="report-item-actions">'
       html +=
-        '<button class="btn btn-primary btn-small" onclick="viewReportDetails(\'' + report.id + "')\">Ver PDF</button>"
+        '<button class="btn btn-primary btn-small" onclick="downloadReportPDF(\'' +
+        report.id +
+        "')\">Baixar PDF</button>"
       html += '<button class="btn btn-success btn-small" onclick="editReport(\'' + report.id + "')\">Editar</button>"
       html +=
         '<button class="btn btn-secondary btn-small" onclick="updateStatus(\'' +
@@ -133,10 +135,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Funções globais
-  window.viewReportDetails = (id) => {
+  window.downloadReportPDF = (id) => {
     var report = reports.find((r) => r.id === id)
     if (report) {
-      window.generatePDF(report.dados_relatorio, report.protocolo)
+      window.downloadPDF(report.dados_relatorio, report.protocolo)
     }
   }
 
