@@ -272,10 +272,10 @@ blocoTextoRotulado("PARECER FINAL", dados.parecer_final)
   // ===============================
   if ((dados.fotos || []).length > 0) {
     doc.addPage()
-    y = 20
+    y = 8
 
     tituloSecao("10", "REGISTRO FOTOGRÁFICO")
-
+    y = 5
     var imgW = 88
     var imgH = 66
     var gap = 4
