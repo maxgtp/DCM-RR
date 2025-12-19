@@ -10,7 +10,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   var searchInput = document.getElementById("search-input")
   var searchBtn = document.getElementById("search-btn")
+  var filterBtn = document.getElementById("filter-btn")
+  var filterDropdown = document.getElementById("filter-dropdown")
   var statusFilter = document.getElementById("status-filter") // Adicionando referência ao filtro de status
+  var riscoFilter = document.getElementById("risco-filter") // Adicionando referência ao filtro de classificação de risco
+  var applyFilters = document.getElementById("apply-filters")
+  var clearFilters = document.getElementById("clear-filters")
   var reportsList = document.getElementById("reports-list")
   var loading = document.getElementById("loading")
   var noReports = document.getElementById("no-reports")
@@ -24,6 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Carrega relatórios iniciais
   loadReports()
 
+  filterBtn.addEventListener("click", () => {
+    if (filterDropdown.style.display === "none") {
+      filterDropdown.style.display = "flex"
+    } else {
+      filterDropdown.style.display = "none"
+    }
+  })
+
   // Busca
   searchBtn.addEventListener("click", () => {
     filterReports()
@@ -33,8 +46,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") filterReports()
   })
 
-  statusFilter.addEventListener("change", () => {
+  applyFilters.addEventListener("click", () => {
     filterReports()
+    filterDropdown.style.display = "none"
+  })
+
+  clearFilters.addEventListener("click", () => {
+    statusFilter.value = ""
+    riscoFilter.value = ""
+    searchInput.value = ""
+    filterReports()
+    filterDropdown.style.display = "none"
   })
 
   function loadReports() {
@@ -64,22 +86,43 @@ document.addEventListener("DOMContentLoaded", () => {
   function filterReports() {
     var term = searchInput.value.toLowerCase().trim()
     var statusValue = statusFilter.value // Obtém valor do filtro de status
+    var riscoValue = riscoFilter.value // Obtém valor do filtro de classificação de risco
 
     var filtered = reports.filter((r) => {
       var cpf = (r.cpf || "").toLowerCase()
       var protocolo = (r.protocolo || "").toLowerCase()
       var nome = (r.nome_cidadao || "").toLowerCase()
       var status = r.status || "Pendente"
+      var dados = r.dados_relatorio || {}
+      var classificacao = dados.classificacao_risco || ""
 
       // Filtra por termo de busca
       var matchTerm = !term || cpf.indexOf(term) !== -1 || protocolo.indexOf(term) !== -1 || nome.indexOf(term) !== -1
 
+      // Filtra por status
       var matchStatus = !statusValue || status === statusValue
 
-      return matchTerm && matchStatus
+      var matchRisco = !riscoValue || classificacao === riscoValue
+
+      return matchTerm && matchStatus && matchRisco
     })
 
     renderReports(filtered)
+  }
+
+  function getRiscoClass(risco) {
+    switch (risco) {
+      case "Baixo":
+        return "risco-baixo"
+      case "Médio":
+        return "risco-medio"
+      case "Alto":
+        return "risco-alto"
+      case "Crítico":
+        return "risco-critico"
+      default:
+        return "risco-indefinido"
+    }
   }
 
   function renderReports(data) {
@@ -94,6 +137,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     data.forEach((report) => {
       var dados = report.dados_relatorio || {}
+      var classificacao = dados.classificacao_risco || "Não definido"
+
       html += '<div class="report-item">'
       html += '<div class="report-item-header">'
       html += "<h4>" + (report.nome_cidadao || "Sem nome") + "</h4>"
@@ -102,7 +147,12 @@ document.addEventListener("DOMContentLoaded", () => {
       html += "</div>"
       html += '<div class="report-item-body">'
       html += "<p><strong>Protocolo:</strong> " + (report.protocolo || "-") + "</p>"
-      html += "<p><strong>CPF:</strong> " + window.formatCPF(report.cpf || "") + "</p>"
+      html +=
+        '<p><strong>Risco:</strong> <span class="risco-badge ' +
+        getRiscoClass(classificacao) +
+        '">' +
+        classificacao +
+        "</span></p>"
       html += "<p><strong>Data:</strong> " + window.formatDateTime(report.created_at) + "</p>"
       html += "<p><strong>Endereço:</strong> " + (dados.endereco || "-") + ", " + (dados.bairro || "-") + "</p>"
       html += "</div>"
@@ -165,20 +215,31 @@ document.addEventListener("DOMContentLoaded", () => {
     confirmModal.classList.add("show")
   }
 
-  function deleteReport(id) {
-    supabase
-      .from("relatorios")
-      .delete()
-      .eq("id", id)
-      .then((response) => {
-        if (response.error) throw response.error
+  cancelDelete.addEventListener("click", () => {
+    confirmModal.classList.remove("show")
+    deleteId = null
+  })
 
-        window.showToast("Relatório excluído", "success")
-        loadReports()
-      })
-      .catch((err) => {
-        console.error("Erro ao excluir:", err)
-        window.showToast("Erro ao excluir relatório", "error")
-      })
-  }
+  confirmDelete.addEventListener("click", () => {
+    if (deleteId) {
+      supabase
+        .from("relatorios")
+        .delete()
+        .eq("id", deleteId)
+        .then((response) => {
+          if (response.error) throw response.error
+
+          window.showToast("Relatório excluído", "success")
+          loadReports()
+        })
+        .catch((err) => {
+          console.error("Erro ao excluir:", err)
+          window.showToast("Erro ao excluir relatório", "error")
+        })
+        .finally(() => {
+          confirmModal.classList.remove("show")
+          deleteId = null
+        })
+    }
+  })
 })
