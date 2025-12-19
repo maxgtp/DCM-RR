@@ -1,18 +1,12 @@
-// Script da página de login
+// Script da página de login - usa funções de config.js
+// NÃO declara nenhuma função que já existe nesse arquivo
 
-// Declare isAuthenticated and doLogin functions or import them from config.js
-function isAuthenticated() {
-  // Implement your authentication check logic here
-  return false // Placeholder return value
-}
-
-function doLogin(password) {
-  // Implement your login logic here
-  return false // Placeholder return value
-}
+// Importando as funções necessárias do config.js
+var isAuthenticated = window.isAuthenticated
+var doLogin = window.doLogin
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Se já autenticado, redireciona para o painel
+  // Verifica se já está autenticado usando função do config.js
   if (isAuthenticated()) {
     window.location.href = "painel.html"
     return
@@ -44,6 +38,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     var password = passwordInput.value
 
+    // Usa doLogin do config.js (já carregado globalmente)
     if (doLogin(password)) {
       window.location.href = "painel.html"
     } else {
