@@ -226,14 +226,37 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   doc.text((dados.local_anomalia || []).join(", ") || "-", margin + 2, y + 4)
   y += rowH + 4
 
-  tituloSecao("8", "RELATÓRIO DE VISTORIA")
-  ;["descricao_situacao", "analise_tecnica", "recomendacoes", "parecer_final"].forEach((campoTexto) => {
-    var texto = doc.splitTextToSize(dados[campoTexto] || "-", contentWidth - 4)
-    var alt = texto.length * 4 + 4
-    blocoFundo(alt)
-    doc.text(texto, margin + 2, y + 4)
-    y += alt + 3
-  })
+tituloSecao("8", "RELATÓRIO DE VISTORIA")
+
+function blocoTextoRotulado(rotulo, conteudo) {
+  verificarQuebra(12)
+
+  // Rótulo
+  doc.setFontSize(6)
+  doc.setFont("helvetica", "bold")
+  doc.setTextColor(corSecundaria[0], corSecundaria[1], corSecundaria[2])
+  doc.text(rotulo, margin, y)
+
+  y += 3
+
+  // Conteúdo
+  var linhas = doc.splitTextToSize(conteudo || "-", contentWidth - 4)
+  var altura = linhas.length * 4 + 4
+
+  blocoFundo(altura)
+  doc.setFontSize(7)
+  doc.setFont("helvetica", "normal")
+  doc.setTextColor(0)
+  doc.text(linhas, margin + 2, y + 4)
+
+  y += altura + 4
+}
+
+blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
+blocoTextoRotulado("ANÁLISE TÉCNICA", dados.analise_tecnica)
+blocoTextoRotulado("RECOMENDAÇÕES", dados.recomendacoes)
+blocoTextoRotulado("PARECER FINAL", dados.parecer_final)
+
 
   tituloSecao("9", "AGENTE RESPONSÁVEL")
   blocoFundo(rowH)
