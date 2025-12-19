@@ -187,7 +187,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   window.editReport = (id) => {
-    window.location.href = "editar-relatorio.html?id=" + id
+    console.log("[v0] Editando relatório com ID:", id)
+    window.location.href = "editar-relatorio.html?id=" + encodeURIComponent(id)
   }
 
   window.updateStatus = (id, currentStatus) => {
