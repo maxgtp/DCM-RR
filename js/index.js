@@ -1,62 +1,5 @@
-// Script da página inicial (consulta de CPF)
-
-let supabase // Declare the supabase variable
-
-function formatCPF(val) {
-  // Implementação da função formatCPF
-  return val.replace(/\D/g, "").replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
-}
-
-function cleanCPF(val) {
-  // Implementação da função cleanCPF
-  return val.replace(/\D/g, "")
-}
-
-function validateCPF(val) {
-  // Implementação da função validateCPF
-  val = val.replace(/\D/g, "")
-  if (val.length !== 11 || /^(\d)\1+$/.test(val)) return false
-
-  let sum = 0
-  let remainder
-
-  for (let i = 1; i <= 9; i++) sum += Number.parseInt(val.substring(i - 1, i)) * (11 - i)
-  remainder = (sum * 10) % 11
-  if (remainder === 10 || remainder === 11) remainder = 0
-  if (remainder !== Number.parseInt(val.substring(9, 10))) return false
-
-  sum = 0
-  for (let i = 1; i <= 10; i++) sum += Number.parseInt(val.substring(i - 1, i)) * (12 - i)
-  remainder = (sum * 10) % 11
-  if (remainder === 10 || remainder === 11) remainder = 0
-  if (remainder !== Number.parseInt(val.substring(10, 11))) return false
-
-  return true
-}
-
-function initSupabase() {
-  // Implementação da função initSupabase
-  supabase = window.supabase // Assuming supabase is loaded globally
-  return supabase
-}
-
-function getStatusClass(status) {
-  // Implementação da função getStatusClass
-  switch (status) {
-    case "Aprovado":
-      return "approved"
-    case "Reprovado":
-      return "rejected"
-    default:
-      return "pending"
-  }
-}
-
-function formatDateTime(date) {
-  // Implementação da função formatDateTime
-  const options = { year: "numeric", month: "long", day: "numeric" }
-  return new Date(date).toLocaleDateString("pt-BR", options)
-}
+// Script da página inicial - usa funções de config.js e utils.js
+// NÃO declara nenhuma função que já existe nesses arquivos
 
 document.addEventListener("DOMContentLoaded", () => {
   var cpfInput = document.getElementById("cpf")
@@ -67,20 +10,22 @@ document.addEventListener("DOMContentLoaded", () => {
   var errorMessage = document.getElementById("error-message")
   var searchBtn = document.getElementById("search-btn")
 
-  // Formatação automática do CPF
+  // Formatação automática do CPF ao digitar
   cpfInput.addEventListener("input", (e) => {
     var value = e.target.value
-    e.target.value = formatCPF(value)
+    // Usa formatCPF do utils.js (já carregado globalmente)
+    e.target.value = window.formatCPF(value)
   })
 
   // Busca de relatórios
   form.addEventListener("submit", async (e) => {
     e.preventDefault()
 
-    var cpf = cleanCPF(cpfInput.value)
+    var cpfValue = cpfInput.value
+    var cpf = window.cleanCPF(cpfValue)
 
-    // Valida CPF
-    if (!validateCPF(cpfInput.value)) {
+    // Valida CPF usando função do utils.js
+    if (!window.validateCPF(cpfValue)) {
       errorMessage.textContent = "CPF inválido. Verifique o número digitado."
       errorMessage.style.display = "block"
       resultsSection.style.display = "none"
@@ -93,8 +38,9 @@ document.addEventListener("DOMContentLoaded", () => {
     searchBtn.innerHTML = '<span class="spinner"></span> Buscando...'
 
     try {
-      var supabase = initSupabase()
-      var response = await supabase
+      // Usa initSupabase do config.js (já carregado globalmente)
+      var supabaseClient = window.initSupabase()
+      var response = await supabaseClient
         .from("relatorios")
         .select("*")
         .eq("cpf", cpf)
@@ -128,6 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
       var report = reports[i]
       var dados = report.dados_relatorio || {}
       var solicitacao = dados.solicitacao ? dados.solicitacao.join(", ") : "-"
+      var statusClass = window.getStatusClass(report.status)
+      var dataFormatada = window.formatDateTime(report.created_at)
 
       html +=
         '<div class="result-card">' +
@@ -136,14 +84,14 @@ document.addEventListener("DOMContentLoaded", () => {
         (report.protocolo || "-") +
         "</h4>" +
         '<span class="status ' +
-        getStatusClass(report.status) +
+        statusClass +
         '">' +
         (report.status || "Pendente") +
         "</span>" +
         "</div>" +
         '<div class="result-card-body">' +
         "<p><strong>Data:</strong> " +
-        formatDateTime(report.created_at) +
+        dataFormatada +
         "</p>" +
         "<p><strong>Endereço:</strong> " +
         (dados.endereco || "-") +
@@ -171,8 +119,8 @@ document.addEventListener("DOMContentLoaded", () => {
 // Função global para visualizar relatório
 async function viewReport(id) {
   try {
-    var supabase = initSupabase()
-    var response = await supabase.from("relatorios").select("*").eq("id", id).single()
+    var supabaseClient = window.initSupabase()
+    var response = await supabaseClient.from("relatorios").select("*").eq("id", id).single()
 
     if (response.error) throw response.error
 
