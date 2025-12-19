@@ -139,7 +139,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     var texto = String(valor || "-").substring(0, Math.floor(w / 2))
     doc.text(texto, x + doc.getTextWidth(label + ": "), y)
   }
-  y += 50
+  y += 20
   tituloSecao("1", "IDENTIFICAÇÃO")
   doc.setFillColor(corFundo[0], corFundo[1], corFundo[2])
   doc.roundedRect(margin, y, contentWidth, 7, 1, 1, "F")
@@ -233,7 +233,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   y += 9
 
   tituloSecao("8", "RELATÓRIO DE VISTORIA")
-
+  y += 15
   // Descrição da Situação
   doc.setFontSize(6)
   doc.setFont("helvetica", "bold")
@@ -264,7 +264,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   doc.text("CLASSIFICAÇÃO DE RISCO: " + (dados.classificacao_risco || "-").toUpperCase(), pageWidth / 2, y + 4, {
     align: "center",
   })
-  y += 9
+  y += 15
 
   // Recomendações
   doc.setFontSize(6)
@@ -293,8 +293,8 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   campoInline("Nome", dados.nome_agente, margin + 2, 70)
   campoInline("Matrícula", dados.matricula_agente, margin + 80, 30)
   campoInline("Cargo", dados.cargo_agente, margin + 125, 50)
-  y += 8
-
+  y += 20
+  
   // Área de assinatura
   doc.setDrawColor(corPrimaria[0], corPrimaria[1], corPrimaria[2])
   doc.setLineWidth(0.3)
