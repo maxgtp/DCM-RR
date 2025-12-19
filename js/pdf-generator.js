@@ -276,11 +276,12 @@ function criarDocumentoPDF(dados, protocolo) {
   doc.text("Assinatura do Agente", pageWidth / 2, y, { align: "center" })
   y += 15
 
-  // Seção 10: Registro Fotográfico
   var fotos = dados.fotos || []
   if (fotos.length > 0) {
-    checkPageBreak(50)
-    y += 5
+    // Sempre inicia nova página para o registro fotográfico
+    doc.addPage()
+    y = 20
+
     doc.setFillColor(234, 88, 12)
     doc.rect(margin, y, contentWidth, 8, "F")
     doc.setTextColor(255, 255, 255)
@@ -309,7 +310,10 @@ function criarDocumentoPDF(dados, protocolo) {
       }
 
       // Verifica quebra de página
-      checkPageBreak(imgHeight + 20)
+      if (y + imgHeight + 20 > doc.internal.pageSize.getHeight() - 20) {
+        doc.addPage()
+        y = 20
+      }
 
       try {
         // Adiciona a imagem
@@ -330,9 +334,6 @@ function criarDocumentoPDF(dados, protocolo) {
         doc.text("Imagem " + (fotoIndex + 1) + " indisponível", xPos + 10, y + imgHeight / 2)
       }
     }
-
-    // Ajusta y após última linha de imagens
-    y += imgHeight + 20
   }
 
   // Rodapé
