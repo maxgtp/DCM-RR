@@ -139,7 +139,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     var texto = String(valor || "-").substring(0, Math.floor(w / 2))
     doc.text(texto, x + doc.getTextWidth(label + ": "), y)
   }
-  y += 15
+  y += 50
   tituloSecao("1", "IDENTIFICAÇÃO")
   doc.setFillColor(corFundo[0], corFundo[1], corFundo[2])
   doc.roundedRect(margin, y, contentWidth, 7, 1, 1, "F")
