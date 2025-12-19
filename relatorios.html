@@ -114,6 +114,32 @@
         </div>
     </div>
 
+    <!-- Modal para alterar status com opções e confirmação -->
+    <div id="status-modal" class="modal">
+        <div class="modal-content">
+            <h3>Alterar Status</h3>
+            <p>Selecione o novo status para este relatório:</p>
+            <div class="status-options">
+                <label class="status-option">
+                    <input type="radio" name="new-status" value="Pendente">
+                    <span class="status-label status-pendente">Pendente</span>
+                </label>
+                <label class="status-option">
+                    <input type="radio" name="new-status" value="Em Análise">
+                    <span class="status-label status-em-analise">Em Análise</span>
+                </label>
+                <label class="status-option">
+                    <input type="radio" name="new-status" value="Concluído">
+                    <span class="status-label status-concluido">Concluído</span>
+                </label>
+            </div>
+            <div class="modal-actions">
+                <button id="cancel-status" class="btn btn-outline">Cancelar</button>
+                <button id="confirm-status" class="btn btn-primary">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <p>&copy; 2025 Defesa Civil - Prefeitura Municipal. Todos os direitos reservados.</p>
     </footer>
