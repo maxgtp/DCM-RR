@@ -279,7 +279,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   campo("Nome", dados.nome_agente, margin + 2, 60)
   campo("Matrícula", dados.matricula_agente, margin + 70, 30)
   campo("Cargo", dados.cargo_agente, margin + 105, 40)
-  y += rowH + 10
+  y += rowH + 5
 
   doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y)
   doc.setFontSize(6)
