@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", () => {
   var searchBtn = document.getElementById("search-btn")
   var filterBtn = document.getElementById("filter-btn")
   var filterDropdown = document.getElementById("filter-dropdown")
-  var statusFilter = document.getElementById("status-filter") // Adicionando referência ao filtro de status
-  var riscoFilter = document.getElementById("risco-filter") // Adicionando referência ao filtro de classificação de risco
+  var statusFilter = document.getElementById("status-filter")
+  var riscoFilter = document.getElementById("risco-filter")
   var applyFilters = document.getElementById("apply-filters")
   var clearFilters = document.getElementById("clear-filters")
   var reportsList = document.getElementById("reports-list")
@@ -29,13 +29,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Carrega relatórios iniciais
   loadReports()
 
-  filterBtn.addEventListener("click", () => {
-    if (filterDropdown.style.display === "none") {
+  function toggleFilter(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    if (filterDropdown.style.display === "none" || filterDropdown.style.display === "") {
       filterDropdown.style.display = "flex"
     } else {
       filterDropdown.style.display = "none"
     }
-  })
+  }
+
+  filterBtn.addEventListener("click", toggleFilter)
+  filterBtn.addEventListener("touchend", toggleFilter)
 
   // Busca
   searchBtn.addEventListener("click", () => {
@@ -85,8 +90,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function filterReports() {
     var term = searchInput.value.toLowerCase().trim()
-    var statusValue = statusFilter.value // Obtém valor do filtro de status
-    var riscoValue = riscoFilter.value // Obtém valor do filtro de classificação de risco
+    var statusValue = statusFilter.value
+    var riscoValue = riscoFilter.value
 
     var filtered = reports.filter((r) => {
       var cpf = (r.cpf || "").toLowerCase()
@@ -96,12 +101,8 @@ document.addEventListener("DOMContentLoaded", () => {
       var dados = r.dados_relatorio || {}
       var classificacao = dados.classificacao_risco || ""
 
-      // Filtra por termo de busca
       var matchTerm = !term || cpf.indexOf(term) !== -1 || protocolo.indexOf(term) !== -1 || nome.indexOf(term) !== -1
-
-      // Filtra por status
       var matchStatus = !statusValue || status === statusValue
-
       var matchRisco = !riscoValue || classificacao === riscoValue
 
       return matchTerm && matchStatus && matchRisco
