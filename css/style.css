@@ -146,6 +146,16 @@ body {
   background: #b91c1c;
 }
 
+/* Adicionando estilo para botão verde (Editar) */
+.btn-success {
+  background: var(--success);
+  color: white;
+}
+
+.btn-success:hover {
+  background: #15803d;
+}
+
 .btn-full {
   width: 100%;
 }
