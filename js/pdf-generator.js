@@ -175,7 +175,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   } else {
     y += 6
   }
-  
+
   // ===============================
   // SEÇÕES
   // ===============================
@@ -284,7 +284,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   campo("Matrícula", dados.matricula_agente, margin + 70, 30)
   campo("Cargo", dados.cargo_agente, margin + 105, 40)
   y += rowH + 45
-  
+
   doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y)
   doc.setFontSize(5)
   doc.text("Assinatura do Agente Responsável", pageWidth / 2, y + 3, { align: "center" })
@@ -297,6 +297,8 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     y = 12
 
     tituloSecao("10", "REGISTRO FOTOGRÁFICO")
+
+    y += 8
 
     var imgW = 80
     var imgH = 60
