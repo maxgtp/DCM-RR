@@ -1,49 +1,35 @@
 // Script da lista de relatórios
+// Usa funções globais de config.js e utils.js
 
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   // Verifica autenticação
-  const requireAuth = () => true // Placeholder for requireAuth function
+  var requireAuth = window.requireAuth // Declare the variable before using it
   if (!requireAuth()) return
 
-  const supabase = {} // Placeholder for supabase initialization
-  const initSupabase = () => {} // Placeholder for initSupabase function
-  const searchInput = document.getElementById("search-input")
-  const searchBtn = document.getElementById("search-btn")
-  const reportsList = document.getElementById("reports-list")
-  const loading = document.getElementById("loading")
-  const noReports = document.getElementById("no-reports")
-  const confirmModal = document.getElementById("confirm-modal")
-  const cancelDelete = document.getElementById("cancel-delete")
-  const confirmDelete = document.getElementById("confirm-delete")
+  // Inicializa Supabase
+  var initSupabase = window.initSupabase // Declare the variable before using it
+  var supabase = initSupabase()
 
-  const showToast = (message, type) => {
-    console.log(`${type}: ${message}`)
-  } // Placeholder for showToast function
+  var searchInput = document.getElementById("search-input")
+  var searchBtn = document.getElementById("search-btn")
+  var reportsList = document.getElementById("reports-list")
+  var loading = document.getElementById("loading")
+  var noReports = document.getElementById("no-reports")
+  var confirmModal = document.getElementById("confirm-modal")
+  var cancelDelete = document.getElementById("cancel-delete")
+  var confirmDelete = document.getElementById("confirm-delete")
 
-  const getStatusClass = (status) => {
-    return status.toLowerCase()
-  } // Placeholder for getStatusClass function
-
-  const formatCPF = (cpf) => {
-    return cpf // Placeholder for CPF formatting logic
-  } // Placeholder for formatCPF function
-
-  const formatDateTime = (date) => {
-    return date // Placeholder for date formatting logic
-  } // Placeholder for formatDateTime function
-
-  const generatePDF = (data, protocolo) => {
-    console.log(`Generating PDF for protocolo: ${protocolo}`) // Placeholder for PDF generation logic
-  } // Placeholder for generatePDF function
-
-  let reports = []
-  let deleteId = null
+  var reports = []
+  var deleteId = null
 
   // Carrega relatórios iniciais
-  await loadReports()
+  loadReports()
 
   // Busca
-  searchBtn.addEventListener("click", () => filterReports())
+  searchBtn.addEventListener("click", () => {
+    filterReports()
+  })
+
   searchInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") filterReports()
   })
@@ -54,48 +40,53 @@ document.addEventListener("DOMContentLoaded", async () => {
     deleteId = null
   })
 
-  confirmDelete.addEventListener("click", async () => {
+  confirmDelete.addEventListener("click", () => {
     if (deleteId) {
-      await deleteReport(deleteId)
+      deleteReport(deleteId)
       confirmModal.classList.remove("show")
       deleteId = null
     }
   })
 
-  async function loadReports() {
+  function loadReports() {
     loading.style.display = "flex"
     reportsList.innerHTML = ""
     noReports.style.display = "none"
 
-    try {
-      const { data, error } = await supabase.from("relatorios").select("*").order("created_at", { ascending: false })
+    supabase
+      .from("relatorios")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (error) throw error
-
-      reports = data || []
-      renderReports(reports)
-    } catch (err) {
-      console.error("Erro ao carregar:", err)
-      showToast("Erro ao carregar relatórios", "error")
-    } finally {
-      loading.style.display = "none"
-    }
+        reports = response.data || []
+        renderReports(reports)
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar:", err)
+        var showToast = window.showToast // Declare the variable before using it
+        showToast("Erro ao carregar relatórios", "error")
+      })
+      .finally(() => {
+        loading.style.display = "none"
+      })
   }
 
   function filterReports() {
-    const term = searchInput.value.toLowerCase().trim()
+    var term = searchInput.value.toLowerCase().trim()
 
     if (!term) {
       renderReports(reports)
       return
     }
 
-    const filtered = reports.filter((r) => {
-      const cpf = (r.cpf || "").toLowerCase()
-      const protocolo = (r.protocolo || "").toLowerCase()
-      const nome = (r.nome_cidadao || "").toLowerCase()
+    var filtered = reports.filter((r) => {
+      var cpf = (r.cpf || "").toLowerCase()
+      var protocolo = (r.protocolo || "").toLowerCase()
+      var nome = (r.nome_cidadao || "").toLowerCase()
 
-      return cpf.includes(term) || protocolo.includes(term) || nome.includes(term)
+      return cpf.indexOf(term) !== -1 || protocolo.indexOf(term) !== -1 || nome.indexOf(term) !== -1
     })
 
     renderReports(filtered)
@@ -109,75 +100,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     noReports.style.display = "none"
-    reportsList.innerHTML = data
-      .map((report) => {
-        const dados = report.dados_relatorio || {}
-        return `
-                <div class="report-item">
-                    <div class="report-item-header">
-                        <h4>${report.nome_cidadao || "Sem nome"}</h4>
-                        <span class="status ${getStatusClass(report.status)}">${report.status || "Pendente"}</span>
-                    </div>
-                    <div class="report-item-body">
-                        <p><strong>Protocolo:</strong> ${report.protocolo || "-"}</p>
-                        <p><strong>CPF:</strong> ${formatCPF(report.cpf || "")}</p>
-                        <p><strong>Data:</strong> ${formatDateTime(report.created_at)}</p>
-                        <p><strong>Endereço:</strong> ${dados.endereco || "-"}, ${dados.bairro || "-"}</p>
-                    </div>
-                    <div class="report-item-actions">
-                        <button class="btn btn-primary btn-small" onclick="viewReportDetails('${report.id}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
-                                <circle cx="12" cy="12" r="3"/>
-                            </svg>
-                            Ver PDF
-                        </button>
-                        <button class="btn btn-secondary btn-small" onclick="updateStatus('${report.id}', '${report.status}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 20h9"/>
-                                <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>
-                            </svg>
-                            Alterar Status
-                        </button>
-                        <button class="btn btn-danger btn-small" onclick="confirmDeleteReport('${report.id}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18"/>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            </svg>
-                            Excluir
-                        </button>
-                    </div>
-                </div>
-            `
-      })
-      .join("")
+    var html = ""
+
+    data.forEach((report) => {
+      var dados = report.dados_relatorio || {}
+      html += '<div class="report-item">'
+      html += '<div class="report-item-header">'
+      html += "<h4>" + (report.nome_cidadao || "Sem nome") + "</h4>"
+      var getStatusClass = window.getStatusClass // Declare the variable before using it
+      html += '<span class="status ' + getStatusClass(report.status) + '">' + (report.status || "Pendente") + "</span>"
+      html += "</div>"
+      html += '<div class="report-item-body">'
+      var formatCPF = window.formatCPF // Declare the variable before using it
+      html += "<p><strong>Protocolo:</strong> " + (report.protocolo || "-") + "</p>"
+      html += "<p><strong>CPF:</strong> " + formatCPF(report.cpf || "") + "</p>"
+      var formatDateTime = window.formatDateTime // Declare the variable before using it
+      html += "<p><strong>Data:</strong> " + formatDateTime(report.created_at) + "</p>"
+      html += "<p><strong>Endereço:</strong> " + (dados.endereco || "-") + ", " + (dados.bairro || "-") + "</p>"
+      html += "</div>"
+      html += '<div class="report-item-actions">'
+      html +=
+        '<button class="btn btn-primary btn-small" onclick="viewReportDetails(\'' + report.id + "')\">Ver PDF</button>"
+      html +=
+        '<button class="btn btn-secondary btn-small" onclick="updateStatus(\'' +
+        report.id +
+        "', '" +
+        report.status +
+        "')\">Alterar Status</button>"
+      html +=
+        '<button class="btn btn-danger btn-small" onclick="confirmDeleteReport(\'' + report.id + "')\">Excluir</button>"
+      html += "</div>"
+      html += "</div>"
+    })
+
+    reportsList.innerHTML = html
   }
 
   // Funções globais
-  window.viewReportDetails = async (id) => {
-    const report = reports.find((r) => r.id === id)
+  window.viewReportDetails = (id) => {
+    var report = reports.find((r) => r.id === id)
     if (report) {
+      var generatePDF = window.generatePDF // Declare the variable before using it
       generatePDF(report.dados_relatorio, report.protocolo)
     }
   }
 
-  window.updateStatus = async (id, currentStatus) => {
-    const statuses = ["Pendente", "Em Análise", "Concluído"]
-    const currentIndex = statuses.indexOf(currentStatus || "Pendente")
-    const nextStatus = statuses[(currentIndex + 1) % statuses.length]
+  window.updateStatus = (id, currentStatus) => {
+    var statuses = ["Pendente", "Em Análise", "Concluído"]
+    var currentIndex = statuses.indexOf(currentStatus || "Pendente")
+    var nextStatus = statuses[(currentIndex + 1) % statuses.length]
 
-    try {
-      const { error } = await supabase.from("relatorios").update({ status: nextStatus }).eq("id", id)
+    supabase
+      .from("relatorios")
+      .update({ status: nextStatus })
+      .eq("id", id)
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (error) throw error
-
-      showToast(`Status alterado para: ${nextStatus}`, "success")
-      await loadReports()
-    } catch (err) {
-      console.error("Erro ao atualizar:", err)
-      showToast("Erro ao atualizar status", "error")
-    }
+        var showToast = window.showToast // Declare the variable before using it
+        showToast("Status alterado para: " + nextStatus, "success")
+        loadReports()
+      })
+      .catch((err) => {
+        console.error("Erro ao atualizar:", err)
+        var showToast = window.showToast // Declare the variable before using it
+        showToast("Erro ao atualizar status", "error")
+      })
   }
 
   window.confirmDeleteReport = (id) => {
@@ -185,17 +173,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     confirmModal.classList.add("show")
   }
 
-  async function deleteReport(id) {
-    try {
-      const { error } = await supabase.from("relatorios").delete().eq("id", id)
+  function deleteReport(id) {
+    supabase
+      .from("relatorios")
+      .delete()
+      .eq("id", id)
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (error) throw error
-
-      showToast("Relatório excluído", "success")
-      await loadReports()
-    } catch (err) {
-      console.error("Erro ao excluir:", err)
-      showToast("Erro ao excluir relatório", "error")
-    }
+        var showToast = window.showToast // Declare the variable before using it
+        showToast("Relatório excluído", "success")
+        loadReports()
+      })
+      .catch((err) => {
+        console.error("Erro ao excluir:", err)
+        var showToast = window.showToast // Declare the variable before using it
+        showToast("Erro ao excluir relatório", "error")
+      })
   }
 })
