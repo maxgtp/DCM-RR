@@ -804,6 +804,7 @@ body {
 
 .search-box {
   display: flex;
+  flex-wrap: wrap; /* Added from update */
   gap: 0.75rem;
   background: var(--surface);
   padding: 1rem;
@@ -813,6 +814,7 @@ body {
 
 .search-box input {
   flex: 1;
+  min-width: 200px; /* Added from update */
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -822,6 +824,24 @@ body {
 .search-box input:focus {
   outline: none;
   border-color: var(--primary);
+}
+
+/* Adicionando estilo para o filtro de status */
+.status-filter {
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.875rem;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  min-width: 150px;
+}
+
+.status-filter:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.1);
 }
 
 .reports-list {
