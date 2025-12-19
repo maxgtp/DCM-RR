@@ -429,6 +429,19 @@ body {
   justify-content: center;
 }
 
+/* Adiciona estilo para campos somente leitura */
+.readonly-field {
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.form-group input[readonly] {
+  background-color: #f1f5f9;
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 /* ========================================
    FORM ACTIONS
 ======================================== */

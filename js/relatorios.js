@@ -3,12 +3,10 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // Verifica autenticação
-  var requireAuth = window.requireAuth // Declare the variable before using it
-  if (!requireAuth()) return
+  if (!window.requireAuth()) return
 
   // Inicializa Supabase
-  var initSupabase = window.initSupabase // Declare the variable before using it
-  var supabase = initSupabase()
+  var supabase = window.initSupabase()
 
   var searchInput = document.getElementById("search-input")
   var searchBtn = document.getElementById("search-btn")
@@ -65,8 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((err) => {
         console.error("Erro ao carregar:", err)
-        var showToast = window.showToast // Declare the variable before using it
-        showToast("Erro ao carregar relatórios", "error")
+        window.showToast("Erro ao carregar relatórios", "error")
       })
       .finally(() => {
         loading.style.display = "none"
@@ -107,20 +104,19 @@ document.addEventListener("DOMContentLoaded", () => {
       html += '<div class="report-item">'
       html += '<div class="report-item-header">'
       html += "<h4>" + (report.nome_cidadao || "Sem nome") + "</h4>"
-      var getStatusClass = window.getStatusClass // Declare the variable before using it
-      html += '<span class="status ' + getStatusClass(report.status) + '">' + (report.status || "Pendente") + "</span>"
+      html +=
+        '<span class="status ' + window.getStatusClass(report.status) + '">' + (report.status || "Pendente") + "</span>"
       html += "</div>"
       html += '<div class="report-item-body">'
-      var formatCPF = window.formatCPF // Declare the variable before using it
       html += "<p><strong>Protocolo:</strong> " + (report.protocolo || "-") + "</p>"
-      html += "<p><strong>CPF:</strong> " + formatCPF(report.cpf || "") + "</p>"
-      var formatDateTime = window.formatDateTime // Declare the variable before using it
-      html += "<p><strong>Data:</strong> " + formatDateTime(report.created_at) + "</p>"
+      html += "<p><strong>CPF:</strong> " + window.formatCPF(report.cpf || "") + "</p>"
+      html += "<p><strong>Data:</strong> " + window.formatDateTime(report.created_at) + "</p>"
       html += "<p><strong>Endereço:</strong> " + (dados.endereco || "-") + ", " + (dados.bairro || "-") + "</p>"
       html += "</div>"
       html += '<div class="report-item-actions">'
       html +=
         '<button class="btn btn-primary btn-small" onclick="viewReportDetails(\'' + report.id + "')\">Ver PDF</button>"
+      html += '<button class="btn btn-outline btn-small" onclick="editReport(\'' + report.id + "')\">Editar</button>"
       html +=
         '<button class="btn btn-secondary btn-small" onclick="updateStatus(\'' +
         report.id +
@@ -140,9 +136,12 @@ document.addEventListener("DOMContentLoaded", () => {
   window.viewReportDetails = (id) => {
     var report = reports.find((r) => r.id === id)
     if (report) {
-      var generatePDF = window.generatePDF // Declare the variable before using it
-      generatePDF(report.dados_relatorio, report.protocolo)
+      window.generatePDF(report.dados_relatorio, report.protocolo)
     }
+  }
+
+  window.editReport = (id) => {
+    window.location.href = "editar-relatorio.html?id=" + id
   }
 
   window.updateStatus = (id, currentStatus) => {
@@ -157,14 +156,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((response) => {
         if (response.error) throw response.error
 
-        var showToast = window.showToast // Declare the variable before using it
-        showToast("Status alterado para: " + nextStatus, "success")
+        window.showToast("Status alterado para: " + nextStatus, "success")
         loadReports()
       })
       .catch((err) => {
         console.error("Erro ao atualizar:", err)
-        var showToast = window.showToast // Declare the variable before using it
-        showToast("Erro ao atualizar status", "error")
+        window.showToast("Erro ao atualizar status", "error")
       })
   }
 
@@ -181,14 +178,12 @@ document.addEventListener("DOMContentLoaded", () => {
       .then((response) => {
         if (response.error) throw response.error
 
-        var showToast = window.showToast // Declare the variable before using it
-        showToast("Relatório excluído", "success")
+        window.showToast("Relatório excluído", "success")
         loadReports()
       })
       .catch((err) => {
         console.error("Erro ao excluir:", err)
-        var showToast = window.showToast // Declare the variable before using it
-        showToast("Erro ao excluir relatório", "error")
+        window.showToast("Erro ao excluir relatório", "error")
       })
   }
 })

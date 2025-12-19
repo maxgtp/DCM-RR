@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   })
 
   // Busca de relatórios
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault()
 
     var cpfValue = cpfInput.value
@@ -37,35 +37,36 @@ document.addEventListener("DOMContentLoaded", () => {
     searchBtn.disabled = true
     searchBtn.innerHTML = '<span class="spinner"></span> Buscando...'
 
-    try {
-      // Usa initSupabase do config.js (já carregado globalmente)
-      var supabaseClient = window.initSupabase()
-      var response = await supabaseClient
-        .from("relatorios")
-        .select("*")
-        .eq("cpf", cpf)
-        .order("created_at", { ascending: false })
+    // Usa initSupabase do config.js (já carregado globalmente)
+    var supabaseClient = window.initSupabase()
+    supabaseClient
+      .from("relatorios")
+      .select("*")
+      .eq("cpf", cpf)
+      .order("created_at", { ascending: false })
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (response.error) throw response.error
-
-      var data = response.data
-      if (data && data.length > 0) {
-        renderResults(data)
-        resultsSection.style.display = "block"
-        noResults.style.display = "none"
-      } else {
-        resultsSection.style.display = "none"
-        noResults.style.display = "flex"
-      }
-    } catch (err) {
-      console.error("Erro ao buscar:", err)
-      errorMessage.textContent = "Erro ao buscar relatórios. Tente novamente."
-      errorMessage.style.display = "block"
-    } finally {
-      searchBtn.disabled = false
-      searchBtn.innerHTML =
-        '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Consultar'
-    }
+        var data = response.data
+        if (data && data.length > 0) {
+          renderResults(data)
+          resultsSection.style.display = "block"
+          noResults.style.display = "none"
+        } else {
+          resultsSection.style.display = "none"
+          noResults.style.display = "flex"
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar:", err)
+        errorMessage.textContent = "Erro ao buscar relatórios. Tente novamente."
+        errorMessage.style.display = "block"
+      })
+      .finally(() => {
+        searchBtn.disabled = false
+        searchBtn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Consultar'
+      })
   })
 
   function renderResults(reports) {
@@ -76,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       var solicitacao = dados.solicitacao ? dados.solicitacao.join(", ") : "-"
       var statusClass = window.getStatusClass(report.status)
       var dataFormatada = window.formatDateTime(report.created_at)
+      var status = report.status || "Pendente"
 
       html +=
         '<div class="result-card">' +
@@ -86,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         '<span class="status ' +
         statusClass +
         '">' +
-        (report.status || "Pendente") +
+        status +
         "</span>" +
         "</div>" +
         '<div class="result-card-body">' +
@@ -101,34 +103,68 @@ document.addEventListener("DOMContentLoaded", () => {
         "<p><strong>Tipo:</strong> " +
         solicitacao +
         "</p>" +
-        "</div>" +
-        '<div class="result-card-actions">' +
-        '<button class="btn btn-primary btn-small" onclick="viewReport(\'' +
-        report.id +
-        "')\">" +
-        '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>' +
-        " Ver Detalhes" +
-        "</button>" +
-        "</div>" +
         "</div>"
+
+      if (status === "Concluído") {
+        html +=
+          '<div class="result-card-actions">' +
+          '<button class="btn btn-primary btn-small" onclick="downloadPDF(\'' +
+          report.id +
+          "')\">" +
+          '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
+          " Baixar em PDF" +
+          "</button>" +
+          "</div>"
+      }
+
+      html += "</div>"
     }
     resultsList.innerHTML = html
   }
+
+  // Armazena relatórios para uso na função de download
+  window.reportsData = []
+
+  // Atualiza a função de busca para armazenar dados
+  var originalSubmit = form.onsubmit
+  form.addEventListener("submit", (e) => {
+    var supabaseClient = window.initSupabase()
+    var cpf = window.cleanCPF(cpfInput.value)
+
+    supabaseClient
+      .from("relatorios")
+      .select("*")
+      .eq("cpf", cpf)
+      .order("created_at", { ascending: false })
+      .then((response) => {
+        if (response.data) {
+          window.reportsData = response.data
+        }
+      })
+  })
 })
 
-// Função global para visualizar relatório
-async function viewReport(id) {
-  try {
-    var supabaseClient = window.initSupabase()
-    var response = await supabaseClient.from("relatorios").select("*").eq("id", id).single()
+function downloadPDF(id) {
+  var supabaseClient = window.initSupabase()
+  supabaseClient
+    .from("relatorios")
+    .select("*")
+    .eq("id", id)
+    .single()
+    .then((response) => {
+      if (response.error) throw response.error
 
-    if (response.error) throw response.error
-
-    if (response.data && response.data.dados_relatorio) {
-      alert("Detalhes do relatório:\n\nProtocolo: " + response.data.protocolo + "\nStatus: " + response.data.status)
-    }
-  } catch (err) {
-    console.error("Erro ao carregar relatório:", err)
-    alert("Erro ao carregar o relatório.")
-  }
+      if (response.data && response.data.dados_relatorio) {
+        // Usa a função generatePDF do pdf-generator.js se disponível, senão usa a do utils.js
+        if (window.generatePDF) {
+          window.generatePDF(response.data.dados_relatorio, response.data.protocolo)
+        } else {
+          alert("Gerando PDF do relatório: " + response.data.protocolo)
+        }
+      }
+    })
+    .catch((err) => {
+      console.error("Erro ao carregar relatório:", err)
+      alert("Erro ao carregar o relatório.")
+    })
 }
