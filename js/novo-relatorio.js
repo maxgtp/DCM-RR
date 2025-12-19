@@ -1,74 +1,82 @@
 // Script do formulário de novo relatório
+// Usa funções globais de config.js e utils.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Importações necessárias
+  const requireAuth = window.requireAuth
+  const initSupabase = window.initSupabase
+  const generateProtocol = window.generateProtocol
+  const formatCPF = window.formatCPF
+  const formatPhone = window.formatPhone
+  const formatCEP = window.formatCEP
+  const generatePDF = window.generatePDF
+  const cleanCPF = window.cleanCPF
+  const validateCPF = window.validateCPF
+  const showToast = window.showToast
+
   // Verifica autenticação
-  const requireAuth = () => true // Placeholder for requireAuth function
   if (!requireAuth()) return
 
-  const initSupabase = () => {} // Placeholder for initSupabase function
-  const supabase = initSupabase()
-  const form = document.getElementById("report-form")
-  const generatePdfBtn = document.getElementById("generate-pdf-btn")
-  const fotoInput = document.getElementById("fotos")
-  const fotoPreview = document.getElementById("foto-preview")
+  // Inicializa Supabase
+  var supabase = initSupabase()
 
-  const uploadedPhotos = []
+  var form = document.getElementById("report-form")
+  var generatePdfBtn = document.getElementById("generate-pdf-btn")
+  var fotoInput = document.getElementById("fotos")
+  var fotoPreview = document.getElementById("foto-preview")
+  var uploadedPhotos = []
 
   // Preenche data e hora atuais
-  const now = new Date()
+  var now = new Date()
   document.getElementById("data_atendimento").value = now.toISOString().split("T")[0]
   document.getElementById("hora_atendimento").value = now.toTimeString().slice(0, 5)
 
   // Gera protocolo automático
-  const generateProtocol = () => "PROTO123" // Placeholder for generateProtocol function
   document.getElementById("protocolo").value = generateProtocol()
 
-  // Formatação de campos
-  const formatCPF = (value) => value // Placeholder for formatCPF function
+  // Formatação de CPF
   document.getElementById("cpf").addEventListener("input", (e) => {
     e.target.value = formatCPF(e.target.value)
   })
 
-  const formatPhone = (value) => value // Placeholder for formatPhone function
+  // Formatação de telefone
   document.getElementById("telefone").addEventListener("input", (e) => {
     e.target.value = formatPhone(e.target.value)
   })
 
-  const formatCEP = (value) => value // Placeholder for formatCEP function
+  // Formatação de CEP
   document.getElementById("cep").addEventListener("input", (e) => {
     e.target.value = formatCEP(e.target.value)
   })
 
   // Preview de fotos
-  const imageToBase64 = (file) =>
-    new Promise((resolve) => resolve("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUA...")) // Placeholder for imageToBase64 function
-  fotoInput.addEventListener("change", async (e) => {
-    const files = Array.from(e.target.files)
+  fotoInput.addEventListener("change", (e) => {
+    var files = Array.from(e.target.files)
 
-    for (const file of files) {
+    files.forEach((file) => {
       if (file.type.startsWith("image/")) {
-        const base64 = await imageToBase64(file)
-        uploadedPhotos.push({
-          name: file.name,
-          data: base64,
-        })
+        var reader = new FileReader()
+        reader.onload = (event) => {
+          uploadedPhotos.push({
+            name: file.name,
+            data: event.target.result,
+          })
+          renderPhotoPreview()
+        }
+        reader.readAsDataURL(file)
       }
-    }
-
-    renderPhotoPreview()
+    })
   })
 
   function renderPhotoPreview() {
-    fotoPreview.innerHTML = uploadedPhotos
-      .map(
-        (photo, index) => `
-            <div class="foto-preview-item">
-                <img src="${photo.data}" alt="${photo.name}">
-                <button type="button" onclick="removePhoto(${index})">&times;</button>
-            </div>
-        `,
-      )
-      .join("")
+    var html = ""
+    uploadedPhotos.forEach((photo, index) => {
+      html += '<div class="foto-preview-item">'
+      html += '<img src="' + photo.data + '" alt="' + photo.name + '">'
+      html += '<button type="button" onclick="removePhoto(' + index + ')">&times;</button>'
+      html += "</div>"
+    })
+    fotoPreview.innerHTML = html
   }
 
   // Função global para remover foto
@@ -78,86 +86,73 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Gerar PDF
-  const generatePDF = (dados, protocolo) => {} // Placeholder for generatePDF function
   generatePdfBtn.addEventListener("click", () => {
-    const dados = collectFormData()
+    var dados = collectFormData()
     generatePDF(dados, dados.protocolo)
   })
 
   // Submeter formulário
-  form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", (e) => {
     e.preventDefault()
 
-    const dados = collectFormData()
-    const cleanCPF = (value) => value // Placeholder for cleanCPF function
-    const cpf = cleanCPF(dados.cpf)
+    var dados = collectFormData()
+    var cpfLimpo = cleanCPF(dados.cpf)
 
     // Valida CPF
-    const validateCPF = (value) => true // Placeholder for validateCPF function
     if (!validateCPF(dados.cpf)) {
-      const showToast = (message, type) => {} // Placeholder for showToast function
       showToast("CPF inválido", "error")
       return
     }
 
     // Validações básicas
     if (!dados.nome_cidadao || !dados.endereco || !dados.descricao_situacao) {
-      const showToast = (message, type) => {} // Placeholder for showToast function
       showToast("Preencha os campos obrigatórios", "error")
       return
     }
 
-    const submitBtn = form.querySelector('button[type="submit"]')
+    var submitBtn = form.querySelector('button[type="submit"]')
     submitBtn.disabled = true
     submitBtn.innerHTML = '<span class="spinner" style="width:1rem;height:1rem;border-width:2px;"></span> Salvando...'
 
-    try {
-      // Adiciona fotos aos dados
-      dados.fotos = uploadedPhotos
+    // Adiciona fotos aos dados
+    dados.fotos = uploadedPhotos
 
-      const { data, error } = await supabase
-        .from("relatorios")
-        .insert({
-          protocolo: dados.protocolo,
-          cpf: cpf,
-          nome_cidadao: dados.nome_cidadao,
-          dados_relatorio: dados,
-          status: "Pendente",
-        })
-        .select()
-        .single()
+    supabase
+      .from("relatorios")
+      .insert({
+        protocolo: dados.protocolo,
+        cpf: cpfLimpo,
+        nome_cidadao: dados.nome_cidadao,
+        dados_relatorio: dados,
+        status: "Pendente",
+      })
+      .select()
+      .single()
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (error) throw error
+        showToast("Relatório salvo com sucesso!", "success")
 
-      const showToast = (message, type) => {} // Placeholder for showToast function
-      showToast("Relatório salvo com sucesso!", "success")
-
-      // Redireciona após 2 segundos
-      setTimeout(() => {
-        window.location.href = "relatorios.html"
-      }, 2000)
-    } catch (err) {
-      console.error("Erro ao salvar:", err)
-      const showToast = (message, type) => {} // Placeholder for showToast function
-      showToast("Erro ao salvar o relatório", "error")
-      submitBtn.disabled = false
-      submitBtn.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
-                    <polyline points="17 21 17 13 7 13 7 21"/>
-                    <polyline points="7 3 7 8 15 8"/>
-                </svg>
-                Salvar Relatório
-            `
-    }
+        // Redireciona após 2 segundos
+        setTimeout(() => {
+          window.location.href = "relatorios.html"
+        }, 2000)
+      })
+      .catch((err) => {
+        console.error("Erro ao salvar:", err)
+        showToast("Erro ao salvar o relatório", "error")
+        submitBtn.disabled = false
+        submitBtn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Relatório'
+      })
   })
 
   function collectFormData() {
-    const formData = new FormData(form)
-    const dados = {}
+    var formData = new FormData(form)
+    var dados = {}
 
     // Campos de texto
-    const textFields = [
+    var textFields = [
       "protocolo",
       "data_atendimento",
       "hora_atendimento",
