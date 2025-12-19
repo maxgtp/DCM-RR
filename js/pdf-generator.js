@@ -124,7 +124,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   // Logo 1 (esquerda) - SMSPT
   if (logos && logos.logo1) {
     try {
-      doc.addImage(logos.logo1, "PNG", margin, 5, 28, 35)
+      doc.addImage(logos.logo1, "PNG", margin, 5, 28, 30)
     } catch (e) {
       console.log("Erro ao adicionar logo1")
     }
@@ -133,7 +133,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   // Logo 2 (direita) - Defesa Civil
   if (logos && logos.logo2) {
     try {
-      doc.addImage(logos.logo2, "PNG", pageWidth - margin - 28, 5, 28, 35)
+      doc.addImage(logos.logo2, "PNG", pageWidth - margin - 28, 5, 28, 30)
     } catch (e) {
       console.log("Erro ao adicionar logo2")
     }
