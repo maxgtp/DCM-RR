@@ -804,7 +804,7 @@ body {
 
 .search-box {
   display: flex;
-  flex-wrap: wrap; /* Added from update */
+  flex-wrap: wrap;
   gap: 0.75rem;
   background: var(--surface);
   padding: 1rem;
@@ -814,7 +814,7 @@ body {
 
 .search-box input {
   flex: 1;
-  min-width: 200px; /* Added from update */
+  min-width: 200px;
   padding: 0.625rem 0.875rem;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -824,6 +824,31 @@ body {
 .search-box input:focus {
   outline: none;
   border-color: var(--primary);
+}
+
+/* Estilos para o dropdown de filtros */
+.filter-dropdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: flex-end;
+  background: var(--surface);
+  padding: 1rem;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-top: 0.75rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.filter-group label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
 }
 
 /* Adicionando estilo para o filtro de status */
@@ -1043,4 +1068,38 @@ body {
   .stat-label {
     font-size: 0.65rem;
   }
+}
+
+/* Estilos para badges de classificação de risco */
+.risco-badge {
+  display: inline-block;
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.risco-baixo {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.risco-medio {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.risco-alto {
+  background: #fed7aa;
+  color: #c2410c;
+}
+
+.risco-critico {
+  background: #fecaca;
+  color: #991b1b;
+}
+
+.risco-indefinido {
+  background: #f1f5f9;
+  color: #64748b;
 }
