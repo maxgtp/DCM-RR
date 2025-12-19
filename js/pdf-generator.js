@@ -237,7 +237,7 @@ function blocoTextoRotulado(rotulo, conteudo) {
   doc.setTextColor(corSecundaria[0], corSecundaria[1], corSecundaria[2])
   doc.text(rotulo, margin, y)
 
-  y += 3
+  y += 5
 
   // Conteúdo
   var linhas = doc.splitTextToSize(conteudo || "-", contentWidth - 4)
@@ -249,7 +249,7 @@ function blocoTextoRotulado(rotulo, conteudo) {
   doc.setTextColor(0)
   doc.text(linhas, margin + 2, y + 4)
 
-  y += altura + 4
+  y += altura + 2
 }
 
 blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
