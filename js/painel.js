@@ -1,56 +1,44 @@
 // Script do painel do agente
+// Usa funções globais de config.js
 
-// Declare required variables
-let requireAuth
-let initSupabase
-let logout
+document.addEventListener("DOMContentLoaded", () => {
+  // Usa funções globais de config.js
+  var requireAuth = window.requireAuth
+  var initSupabase = window.initSupabase
+  var doLogout = window.doLogout
 
-document.addEventListener("DOMContentLoaded", async () => {
   // Verifica autenticação
   if (!requireAuth()) return
 
-  const supabase = initSupabase()
-  const logoutBtn = document.getElementById("logout-btn")
+  var supabase = initSupabase()
+  var logoutBtn = document.getElementById("logout-btn")
 
   // Logout
-  logoutBtn.addEventListener("click", logout)
+  logoutBtn.addEventListener("click", () => {
+    doLogout()
+  })
 
   // Carrega estatísticas
-  await loadStats()
+  loadStats()
 
-  async function loadStats() {
-    try {
-      const { data, error } = await supabase.from("relatorios").select("status")
+  function loadStats() {
+    supabase
+      .from("relatorios")
+      .select("status")
+      .then((response) => {
+        if (response.error) throw response.error
 
-      if (error) throw error
+        var data = response.data || []
+        var total = data.length
+        var pending = data.filter((r) => r.status === "Pendente" || !r.status).length
+        var completed = data.filter((r) => r.status === "Concluído").length
 
-      const total = data.length
-      const pending = data.filter((r) => r.status === "Pendente" || !r.status).length
-      const completed = data.filter((r) => r.status === "Concluído").length
-
-      document.getElementById("total-reports").textContent = total
-      document.getElementById("pending-reports").textContent = pending
-      document.getElementById("completed-reports").textContent = completed
-    } catch (err) {
-      console.error("Erro ao carregar estatísticas:", err)
-    }
+        document.getElementById("total-reports").textContent = total
+        document.getElementById("pending-reports").textContent = pending
+        document.getElementById("completed-reports").textContent = completed
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar estatísticas:", err)
+      })
   }
 })
-
-// Define requireAuth function
-function reAuth() {
-  // Implement authentication check here
-  return true // Placeholder for authentication logic
-}
-
-// Define initSupabase function
-function upabase() {
-  // Implement Supabase initialization here
-  return {} // Placeholder for Supabase client
-}
-
-// Define logout function
-function t() {
-  // Implement logout logic here
-  console.log("Logout button clicked")
-}
