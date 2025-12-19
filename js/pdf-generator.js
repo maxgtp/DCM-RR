@@ -171,9 +171,9 @@ function criarDocumentoPDF(dados, protocolo, logos) {
       align: "center",
     })
     doc.setTextColor(0)
-    y += 8
+    y += 12
   } else {
-    y += 2
+    y += 6
   }
   
   // ===============================
