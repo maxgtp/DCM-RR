@@ -58,7 +58,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   // -------------------------------
   var margin = 8
   var y = 34
-  var rowH = 7
+  var rowH = 6
 
   var pageWidth = doc.internal.pageSize.getWidth()
   var pageHeight = doc.internal.pageSize.getHeight()
@@ -91,182 +91,186 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   }
 
   function tituloSecao(num, titulo) {
-    verificarQuebra(10)
+    verificarQuebra(8)
     doc.setFillColor(...corSecundaria)
-    doc.roundedRect(margin, y, contentWidth, 6, 1.5, 1.5, "F")
+    doc.roundedRect(margin, y, contentWidth, 5, 1.5, 1.5, "F")
 
     doc.setFillColor(...corPrimaria)
-    doc.roundedRect(margin, y, 12, 6, 1.5, 1.5, "F")
+    doc.roundedRect(margin, y, 10, 5, 1.5, 1.5, "F")
 
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(255)
-    doc.text(num, margin + 6, y + 4.2, { align: "center" })
-    doc.text(titulo, margin + 16, y + 4.2)
+    doc.text(num, margin + 5, y + 3.5, { align: "center" })
+    doc.text(titulo, margin + 13, y + 3.5)
 
-    y += 8
+    y += 6
     doc.setTextColor(0)
   }
 
   function campo(label, valor, x, largura) {
-    doc.setFontSize(6)
+    doc.setFontSize(5)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(80)
-    doc.text(label + ":", x, y + 4)
+    doc.text(label + ":", x, y + 3.5)
 
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont("helvetica", "normal")
     doc.setTextColor(0)
-    doc.text(String(valor || "-"), x + doc.getTextWidth(label + ": ") + 1, y + 4, {
+    doc.text(String(valor || "-"), x + doc.getTextWidth(label + ": ") + 1, y + 3.5, {
       maxWidth: largura,
     })
   }
 
   // ===============================
-  // CABEÇALHO
+  // CABEÇALHO (REDUZIDO)
   // ===============================
   doc.setFillColor(...corPrimaria)
-  doc.rect(0, 0, pageWidth, 28, "F")
+  doc.rect(0, 0, pageWidth, 24, "F")
 
   doc.setFillColor(...corSecundaria)
-  doc.rect(0, 28, pageWidth, 2, "F")
+  doc.rect(0, 24, pageWidth, 2, "F")
 
-  if (logos.logo1) doc.addImage(logos.logo1, "PNG", margin, 3, 22, 22)
-  if (logos.logo2) doc.addImage(logos.logo2, "PNG", pageWidth - margin - 22, 3, 22, 22)
+  if (logos.logo1) doc.addImage(logos.logo1, "PNG", margin, 3, 18, 18)
+  if (logos.logo2) doc.addImage(logos.logo2, "PNG", pageWidth - margin - 18, 3, 18, 18)
 
   doc.setTextColor(255)
   doc.setFont("helvetica", "bold")
-  doc.setFontSize(12)
-  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL/GO", pageWidth / 2, 11, { align: "center" })
+  doc.setFontSize(10)
+  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL/GO", pageWidth / 2, 9, { align: "center" })
 
-  doc.setFontSize(9)
+  doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
-  doc.text("RELATÓRIO DE VISTORIA TÉCNICA", pageWidth / 2, 17, { align: "center" })
+  doc.text("RELATÓRIO DE VISTORIA TÉCNICA", pageWidth / 2, 14, { align: "center" })
 
   doc.setFillColor(255)
-  doc.roundedRect(pageWidth / 2 - 25, 20, 50, 6, 1.5, 1.5, "F")
+  doc.roundedRect(pageWidth / 2 - 22, 17, 44, 5, 1.5, 1.5, "F")
   doc.setTextColor(...corPrimaria)
-  doc.setFontSize(7)
-  doc.text("Protocolo: " + (protocolo || "N/A"), pageWidth / 2, 24, { align: "center" })
+  doc.setFontSize(6)
+  doc.text("Protocolo: " + (protocolo || "N/A"), pageWidth / 2, 20.5, { align: "center" })
 
   doc.setTextColor(0)
 
   // ===============================
-  // SEÇÕES (ORDEM ORIGINAL)
   // ===============================
-  tituloSecao("1", "IDENTIFICAÇÃO")
-  blocoFundo(rowH)
-  campo("Data", dados.data_atendimento, margin + 2, 30)
-  campo("Hora", dados.hora_atendimento, margin + 40, 20)
-  campo("Protocolo", protocolo, margin + 70, 40)
-  y += rowH + 3
-
-  tituloSecao("2", "DEMANDA")
-  blocoFundo(rowH)
-  campo("Nome", dados.nome_cidadao, margin + 2, contentWidth)
-  y += rowH + 2
-
-  blocoFundo(rowH)
-  campo("CPF", formatCPF(dados.cpf), margin + 2, 35)
-  campo("RG", dados.rg, margin + 45, 25)
-  campo("Telefone", dados.telefone, margin + 75, 40)
-  y += rowH + 2
-
-  blocoFundo(rowH)
-  campo(
-    "Endereço",
-    `${dados.endereco || ""} - ${dados.bairro || ""} - ${dados.cidade || ""} CEP ${dados.cep || ""}`,
-    margin + 2,
-    contentWidth,
-  )
-  y += rowH + 4
-
-  tituloSecao("3", "SOLICITAÇÃO")
-  var solicitacao = (dados.solicitacao || []).join(", ")
-  if (dados.solicitacao_outra) solicitacao += " | " + dados.solicitacao_outra
-  blocoFundo(rowH)
-  doc.setFontSize(7)
-  doc.text(solicitacao || "-", margin + 2, y + 4)
-  y += rowH + 4
-
-  tituloSecao("4", "TIPO DE OCORRÊNCIA")
-  var ocorr = (dados.ocorrencia || []).join(", ")
-  var ocorrLines = doc.splitTextToSize(ocorr || "-", contentWidth - 4)
-  var ocorrAlt = ocorrLines.length * 4 + 4
-  blocoFundo(ocorrAlt)
-  doc.text(ocorrLines, margin + 2, y + 4)
-  y += ocorrAlt + 4
-
-  tituloSecao("5", "DESCRIÇÃO DA EDIFICAÇÃO")
-  blocoFundo(rowH * 2)
-  campo("Tipo", dados.tipo_edificacao, margin + 2, 30)
-  campo("Pav.", dados.pavimentos, margin + 38, 10)
-  campo("Idade", dados.idade_edificacao, margin + 52, 10)
-  campo("Área m²", dados.area_construida, margin + 66, 20)
-  campo("Moradores", dados.moradores, margin + 90, 20)
-  y += rowH
-  campo("Estrutura", dados.tipo_estrutura, margin + 2, 40)
-  campo("Cobertura", dados.tipo_cobertura, margin + 50, 40)
-  campo("Ocupação", dados.ocupacao, margin + 100, 40)
-  y += rowH + 4
-
-  tituloSecao("6", "MANIFESTAÇÕES PATOLÓGICAS")
-  var pat = (dados.patologia || []).join(", ")
-  var patLines = doc.splitTextToSize(pat || "-", contentWidth - 4)
-  var patAlt = patLines.length * 4 + 4
-  blocoFundo(patAlt)
-  doc.text(patLines, margin + 2, y + 4)
-  y += patAlt + 4
-
-  tituloSecao("7", "LOCALIZAÇÃO DA ANOMALIA")
-  blocoFundo(rowH)
-  doc.text((dados.local_anomalia || []).join(", ") || "-", margin + 2, y + 4)
-  y += rowH + 4
-
-  tituloSecao("8", "RELATÓRIO DE VISTORIA")
+  y = 28
 
   if (dados.classificacao_risco) {
-    blocoFundo(rowH)
-    doc.setFontSize(7)
-    doc.setFont("helvetica", "bold")
-    doc.setTextColor(255)
-
-    // Cor de fundo baseada no grau de risco
-    var corRisco = [100, 100, 100] // cinza padrão
+    var corRisco = [100, 100, 100]
     if (dados.classificacao_risco === "Baixo") corRisco = [34, 197, 94]
     else if (dados.classificacao_risco === "Médio") corRisco = [234, 179, 8]
     else if (dados.classificacao_risco === "Alto") corRisco = [249, 115, 22]
     else if (dados.classificacao_risco === "Crítico") corRisco = [220, 38, 38]
 
     doc.setFillColor(...corRisco)
-    doc.roundedRect(margin, y, contentWidth, rowH, 1.5, 1.5, "F")
-    doc.text("CLASSIFICAÇÃO DE RISCO: " + dados.classificacao_risco.toUpperCase(), pageWidth / 2, y + 4.5, {
+    doc.roundedRect(margin, y, contentWidth, 6, 1.5, 1.5, "F")
+    doc.setFontSize(7)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(255)
+    doc.text("CLASSIFICAÇÃO DE RISCO: " + dados.classificacao_risco.toUpperCase(), pageWidth / 2, y + 4, {
       align: "center",
     })
     doc.setTextColor(0)
-    y += rowH + 3
+    y += 8
+  } else {
+    y += 2
   }
 
+  // ===============================
+  // SEÇÕES
+  // ===============================
+  tituloSecao("1", "IDENTIFICAÇÃO")
+  blocoFundo(rowH)
+  campo("Data", dados.data_atendimento, margin + 2, 30)
+  campo("Hora", dados.hora_atendimento, margin + 40, 20)
+  campo("Protocolo", protocolo, margin + 70, 40)
+  y += rowH + 2
+
+  tituloSecao("2", "DEMANDA")
+  blocoFundo(rowH)
+  campo("Nome", dados.nome_cidadao, margin + 2, contentWidth)
+  y += rowH + 1
+
+  blocoFundo(rowH)
+  campo("CPF", formatCPF(dados.cpf), margin + 2, 35)
+  campo("RG", dados.rg, margin + 45, 25)
+  campo("Telefone", dados.telefone, margin + 75, 40)
+  y += rowH + 1
+
+  blocoFundo(rowH)
+  campo(
+    "Endereço",
+    (dados.endereco || "") + " - " + (dados.bairro || "") + " - " + (dados.cidade || "") + " CEP " + (dados.cep || ""),
+    margin + 2,
+    contentWidth,
+  )
+  y += rowH + 2
+
+  tituloSecao("3", "SOLICITAÇÃO")
+  var solicitacao = (dados.solicitacao || []).join(", ")
+  if (dados.solicitacao_outra) solicitacao += " | " + dados.solicitacao_outra
+  blocoFundo(rowH)
+  doc.setFontSize(6)
+  doc.text(solicitacao || "-", margin + 2, y + 3.5)
+  y += rowH + 2
+
+  tituloSecao("4", "TIPO DE OCORRÊNCIA")
+  var ocorr = (dados.ocorrencia || []).join(", ")
+  var ocorrLines = doc.splitTextToSize(ocorr || "-", contentWidth - 4)
+  var ocorrAlt = ocorrLines.length * 3 + 3
+  blocoFundo(ocorrAlt)
+  doc.setFontSize(6)
+  doc.text(ocorrLines, margin + 2, y + 3.5)
+  y += ocorrAlt + 2
+
+  tituloSecao("5", "DESCRIÇÃO DA EDIFICAÇÃO")
+  blocoFundo(rowH * 2 - 2)
+  campo("Tipo", dados.tipo_edificacao, margin + 2, 30)
+  campo("Pav.", dados.pavimentos, margin + 38, 10)
+  campo("Idade", dados.idade_edificacao, margin + 52, 10)
+  campo("Área m²", dados.area_construida, margin + 66, 20)
+  campo("Moradores", dados.moradores, margin + 90, 20)
+  y += rowH - 1
+  campo("Estrutura", dados.tipo_estrutura, margin + 2, 40)
+  campo("Cobertura", dados.tipo_cobertura, margin + 50, 40)
+  campo("Ocupação", dados.ocupacao, margin + 100, 40)
+  y += rowH + 1
+
+  tituloSecao("6", "MANIFESTAÇÕES PATOLÓGICAS")
+  var pat = (dados.patologia || []).join(", ")
+  var patLines = doc.splitTextToSize(pat || "-", contentWidth - 4)
+  var patAlt = patLines.length * 3 + 3
+  blocoFundo(patAlt)
+  doc.setFontSize(6)
+  doc.text(patLines, margin + 2, y + 3.5)
+  y += patAlt + 2
+
+  tituloSecao("7", "LOCALIZAÇÃO DA ANOMALIA")
+  blocoFundo(rowH)
+  doc.setFontSize(6)
+  doc.text((dados.local_anomalia || []).join(", ") || "-", margin + 2, y + 3.5)
+  y += rowH + 2
+
+  tituloSecao("8", "RELATÓRIO DE VISTORIA")
+
   function blocoTextoRotulado(rotulo, conteudo) {
-    verificarQuebra(12)
-    y += 3
-    // Rótulo
-    doc.setFontSize(6)
+    verificarQuebra(10)
+    y += 2
+    doc.setFontSize(5)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(corSecundaria[0], corSecundaria[1], corSecundaria[2])
     doc.text(rotulo, margin, y)
 
-    // Conteúdo
     var linhas = doc.splitTextToSize(conteudo || "-", contentWidth - 4)
-    var altura = linhas.length * 3 + 3
+    var altura = linhas.length * 2.5 + 2
 
     blocoFundo(altura)
-    doc.setFontSize(7)
+    doc.setFontSize(6)
     doc.setFont("helvetica", "normal")
     doc.setTextColor(0)
-    doc.text(linhas, margin + 2, y + 4)
+    doc.text(linhas, margin + 2, y + 3)
 
-    y += altura + 3
+    y += altura + 2
   }
 
   blocoTextoRotulado("DESCRIÇÃO DA SITUAÇÃO", dados.descricao_situacao)
@@ -279,11 +283,11 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   campo("Nome", dados.nome_agente, margin + 2, 60)
   campo("Matrícula", dados.matricula_agente, margin + 70, 30)
   campo("Cargo", dados.cargo_agente, margin + 105, 40)
-  y += rowH + 5
+  y += rowH + 8
 
   doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y)
-  doc.setFontSize(6)
-  doc.text("Assinatura do Agente Responsável", pageWidth / 2, y + 4, { align: "center" })
+  doc.setFontSize(5)
+  doc.text("Assinatura do Agente Responsável", pageWidth / 2, y + 3, { align: "center" })
 
   // ===============================
   // REGISTRO FOTOGRÁFICO (CENTRALIZADO)
@@ -305,7 +309,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
       var col = i % 2
       var x = startX + col * (imgW + gap)
 
-      if (col === 0 && i > 0) y += imgH + 8 // Reduzido espaçamento sem legenda
+      if (col === 0 && i > 0) y += imgH + 8
       if (y + imgH > pageHeight - 20) {
         doc.addPage()
         y = 10
