@@ -31,10 +31,12 @@ document.addEventListener("DOMContentLoaded", () => {
         var data = response.data || []
         var total = data.length
         var pending = data.filter((r) => r.status === "Pendente" || !r.status).length
+        var analysis = data.filter((r) => r.status === "Em Análise").length
         var completed = data.filter((r) => r.status === "Concluído").length
 
         document.getElementById("total-reports").textContent = total
         document.getElementById("pending-reports").textContent = pending
+        document.getElementById("analysis-reports").textContent = analysis
         document.getElementById("completed-reports").textContent = completed
       })
       .catch((err) => {
