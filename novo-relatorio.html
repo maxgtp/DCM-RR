@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Novo Relatório - Defesa Civil</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -380,25 +381,14 @@
                     <textarea id="analise_tecnica" name="analise_tecnica" rows="4" placeholder="Apresente a análise técnica dos danos observados..."></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Classificação de Risco</label>
-                    <div class="radio-group">
-                        <label class="radio-label">
-                            <input type="radio" name="classificacao_risco" value="Baixo">
-                            <span class="risk-badge low">Baixo</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="classificacao_risco" value="Médio">
-                            <span class="risk-badge medium">Médio</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="classificacao_risco" value="Alto">
-                            <span class="risk-badge high">Alto</span>
-                        </label>
-                        <label class="radio-label">
-                            <input type="radio" name="classificacao_risco" value="Muito Alto">
-                            <span class="risk-badge critical">Muito Alto</span>
-                        </label>
-                    </div>
+                    <label for="classificacao_risco">Classificação de Risco</label>
+                    <select id="classificacao_risco" name="classificacao_risco">
+                        <option value="">Selecione...</option>
+                        <option value="Baixo">Baixo - Sem risco imediato</option>
+                        <option value="Médio">Médio - Requer atenção</option>
+                        <option value="Alto">Alto - Risco significativo</option>
+                        <option value="Crítico">Crítico - Risco iminente</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="recomendacoes">Recomendações</label>
@@ -406,7 +396,7 @@
                 </div>
                 <div class="form-group">
                     <label for="parecer_final">Parecer Final</label>
-                    <textarea id="parecer_final" name="parecer_final" rows="4" placeholder="Apresente o parecer técnico final..."></textarea>
+                    <textarea id="parecer_final" name="parecer_final" rows="4" placeholder="Conclusão e parecer técnico final..."></textarea>
                 </div>
             </section>
 
@@ -417,7 +407,7 @@
                     Agente Responsável
                 </h2>
                 <div class="form-grid">
-                    <div class="form-group">
+                    <div class="form-group full-width">
                         <label for="nome_agente">Nome do Agente</label>
                         <input type="text" id="nome_agente" name="nome_agente" required>
                     </div>
@@ -440,19 +430,10 @@
                 </h2>
                 <div class="form-group">
                     <label for="fotos">Adicionar Fotos</label>
-                    <div class="file-upload">
-                        <input type="file" id="fotos" name="fotos" multiple accept="image/*" class="file-input">
-                        <label for="fotos" class="file-label">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                                <polyline points="17 8 12 3 7 8"/>
-                                <line x1="12" x2="12" y1="3" y2="15"/>
-                            </svg>
-                            <span>Clique para selecionar ou arraste as fotos</span>
-                        </label>
-                    </div>
-                    <div id="foto-preview" class="foto-preview"></div>
+                    <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
+                    <small>Selecione uma ou mais fotos do local</small>
                 </div>
+                <div id="foto-preview" class="foto-preview"></div>
             </section>
 
             <!-- BOTÕES DE AÇÃO -->
@@ -461,6 +442,9 @@
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
                         <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" x2="8" y1="13" y2="13"/>
+                        <line x1="16" x2="8" y1="17" y2="17"/>
+                        <line x1="10" x2="8" y1="9" y2="9"/>
                     </svg>
                     Gerar PDF
                 </button>
@@ -482,11 +466,11 @@
         <p>&copy; 2025 Defesa Civil - Prefeitura Municipal. Todos os direitos reservados.</p>
     </footer>
 
+    <!-- Removido auth.js que não existe -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/config.js"></script>
     <script src="js/utils.js"></script>
-    <script src="js/auth.js"></script>
     <script src="js/pdf-generator.js"></script>
     <script src="js/novo-relatorio.js"></script>
 </body>
