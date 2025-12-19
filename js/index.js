@@ -49,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         var data = response.data
         if (data && data.length > 0) {
+          // Armazena os dados para uso posterior
+          window.reportsData = data
           renderResults(data)
           resultsSection.style.display = "block"
           noResults.style.display = "none"
@@ -108,7 +110,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (status === "Concluído") {
         html +=
           '<div class="result-card-actions">' +
-          '<button class="btn btn-primary btn-small" onclick="downloadPDF(\'' +
+          '<button class="btn btn-primary btn-small" onclick="window.baixarRelatorioPDF(\'' +
           report.id +
           "')\">" +
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
@@ -121,30 +123,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     resultsList.innerHTML = html
   }
-
-  // Armazena relatórios para uso na função de download
-  window.reportsData = []
-
-  // Atualiza a função de busca para armazenar dados
-  var originalSubmit = form.onsubmit
-  form.addEventListener("submit", (e) => {
-    var supabaseClient = window.initSupabase()
-    var cpf = window.cleanCPF(cpfInput.value)
-
-    supabaseClient
-      .from("relatorios")
-      .select("*")
-      .eq("cpf", cpf)
-      .order("created_at", { ascending: false })
-      .then((response) => {
-        if (response.data) {
-          window.reportsData = response.data
-        }
-      })
-  })
 })
 
-function downloadPDF(id) {
+function baixarRelatorioPDF(id) {
   var supabaseClient = window.initSupabase()
   supabaseClient
     .from("relatorios")
@@ -155,12 +136,8 @@ function downloadPDF(id) {
       if (response.error) throw response.error
 
       if (response.data && response.data.dados_relatorio) {
-        // Usa a função generatePDF do pdf-generator.js se disponível, senão usa a do utils.js
-        if (window.generatePDF) {
-          window.generatePDF(response.data.dados_relatorio, response.data.protocolo)
-        } else {
-          alert("Gerando PDF do relatório: " + response.data.protocolo)
-        }
+        // Usa a função downloadPDF do pdf-generator.js que faz download direto
+        window.downloadPDF(response.data.dados_relatorio, response.data.protocolo)
       }
     })
     .catch((err) => {
