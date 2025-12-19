@@ -38,13 +38,7 @@
     <main class="main-content">
         <section class="search-section">
             <div class="search-box">
-                <input type="text" id="search-input" placeholder="Buscar por CPF, protocolo ou nome...">
-                <select id="status-filter" class="status-filter">
-                    <option value="">Todos os Status</option>
-                    <option value="Pendente">Pendente</option>
-                    <option value="Em Análise">Em Análise</option>
-                    <option value="Concluído">Concluído</option>
-                </select>
+                <input type="text" id="search-input" placeholder="Buscar por protocolo ou nome...">
                 <button id="search-btn" class="btn btn-primary">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <circle cx="11" cy="11" r="8"/>
@@ -52,6 +46,37 @@
                     </svg>
                     Buscar
                 </button>
+                <!-- Botão de filtro que abre dropdown com opções -->
+                <button id="filter-btn" class="btn btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                    </svg>
+                    Filtrar
+                </button>
+            </div>
+            <!-- Dropdown de filtros com Status e Classificação de Risco -->
+            <div id="filter-dropdown" class="filter-dropdown" style="display: none;">
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter" class="status-filter">
+                        <option value="">Todos</option>
+                        <option value="Pendente">Pendente</option>
+                        <option value="Em Análise">Em Análise</option>
+                        <option value="Concluído">Concluído</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="risco-filter">Classificação de Risco:</label>
+                    <select id="risco-filter" class="status-filter">
+                        <option value="">Todas</option>
+                        <option value="Baixo">Baixo</option>
+                        <option value="Médio">Médio</option>
+                        <option value="Alto">Alto</option>
+                        <option value="Crítico">Crítico</option>
+                    </select>
+                </div>
+                <button id="apply-filters" class="btn btn-primary btn-small">Aplicar Filtros</button>
+                <button id="clear-filters" class="btn btn-outline btn-small">Limpar</button>
             </div>
         </section>
 
