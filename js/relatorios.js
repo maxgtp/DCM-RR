@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   var searchInput = document.getElementById("search-input")
   var searchBtn = document.getElementById("search-btn")
+  var statusFilter = document.getElementById("status-filter") // Adicionando referência ao filtro de status
   var reportsList = document.getElementById("reports-list")
   var loading = document.getElementById("loading")
   var noReports = document.getElementById("no-reports")
@@ -32,18 +33,8 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.key === "Enter") filterReports()
   })
 
-  // Modal de confirmação
-  cancelDelete.addEventListener("click", () => {
-    confirmModal.classList.remove("show")
-    deleteId = null
-  })
-
-  confirmDelete.addEventListener("click", () => {
-    if (deleteId) {
-      deleteReport(deleteId)
-      confirmModal.classList.remove("show")
-      deleteId = null
-    }
+  statusFilter.addEventListener("change", () => {
+    filterReports()
   })
 
   function loadReports() {
@@ -72,18 +63,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function filterReports() {
     var term = searchInput.value.toLowerCase().trim()
-
-    if (!term) {
-      renderReports(reports)
-      return
-    }
+    var statusValue = statusFilter.value // Obtém valor do filtro de status
 
     var filtered = reports.filter((r) => {
       var cpf = (r.cpf || "").toLowerCase()
       var protocolo = (r.protocolo || "").toLowerCase()
       var nome = (r.nome_cidadao || "").toLowerCase()
+      var status = r.status || "Pendente"
 
-      return cpf.indexOf(term) !== -1 || protocolo.indexOf(term) !== -1 || nome.indexOf(term) !== -1
+      // Filtra por termo de busca
+      var matchTerm = !term || cpf.indexOf(term) !== -1 || protocolo.indexOf(term) !== -1 || nome.indexOf(term) !== -1
+
+      var matchStatus = !statusValue || status === statusValue
+
+      return matchTerm && matchStatus
     })
 
     renderReports(filtered)
