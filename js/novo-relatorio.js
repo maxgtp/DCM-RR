@@ -3,16 +3,15 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   // Importações necessárias
-  const requireAuth = window.requireAuth
-  const initSupabase = window.initSupabase
-  const generateProtocol = window.generateProtocol
-  const formatCPF = window.formatCPF
-  const formatPhone = window.formatPhone
-  const formatCEP = window.formatCEP
-  const generatePDF = window.generatePDF
-  const cleanCPF = window.cleanCPF
-  const validateCPF = window.validateCPF
-  const showToast = window.showToast
+  var requireAuth = window.requireAuth
+  var initSupabase = window.initSupabase
+  var generateProtocol = window.generateProtocol
+  var formatCPF = window.formatCPF
+  var formatPhone = window.formatPhone
+  var formatCEP = window.formatCEP
+  var cleanCPF = window.cleanCPF
+  var validateCPF = window.validateCPF
+  var showToast = window.showToast
 
   // Verifica autenticação
   if (!requireAuth()) return
@@ -21,7 +20,6 @@ document.addEventListener("DOMContentLoaded", () => {
   var supabase = initSupabase()
 
   var form = document.getElementById("report-form")
-  var generatePdfBtn = document.getElementById("generate-pdf-btn")
   var fotoInput = document.getElementById("fotos")
   var fotoPreview = document.getElementById("foto-preview")
   var uploadedPhotos = []
@@ -35,38 +33,49 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("protocolo").value = generateProtocol()
 
   // Formatação de CPF
-  document.getElementById("cpf").addEventListener("input", (e) => {
-    e.target.value = formatCPF(e.target.value)
-  })
+  var cpfField = document.getElementById("cpf")
+  if (cpfField) {
+    cpfField.addEventListener("input", (e) => {
+      e.target.value = formatCPF(e.target.value)
+    })
+  }
 
   // Formatação de telefone
-  document.getElementById("telefone").addEventListener("input", (e) => {
-    e.target.value = formatPhone(e.target.value)
-  })
+  var telefoneField = document.getElementById("telefone")
+  if (telefoneField) {
+    telefoneField.addEventListener("input", (e) => {
+      e.target.value = formatPhone(e.target.value)
+    })
+  }
 
   // Formatação de CEP
-  document.getElementById("cep").addEventListener("input", (e) => {
-    e.target.value = formatCEP(e.target.value)
-  })
+  var cepField = document.getElementById("cep")
+  if (cepField) {
+    cepField.addEventListener("input", (e) => {
+      e.target.value = formatCEP(e.target.value)
+    })
+  }
 
   // Preview de fotos
-  fotoInput.addEventListener("change", (e) => {
-    var files = Array.from(e.target.files)
+  if (fotoInput) {
+    fotoInput.addEventListener("change", (e) => {
+      var files = Array.from(e.target.files)
 
-    files.forEach((file) => {
-      if (file.type.startsWith("image/")) {
-        var reader = new FileReader()
-        reader.onload = (event) => {
-          uploadedPhotos.push({
-            name: file.name,
-            data: event.target.result,
-          })
-          renderPhotoPreview()
+      files.forEach((file) => {
+        if (file.type.startsWith("image/")) {
+          var reader = new FileReader()
+          reader.onload = (event) => {
+            uploadedPhotos.push({
+              name: file.name,
+              data: event.target.result,
+            })
+            renderPhotoPreview()
+          }
+          reader.readAsDataURL(file)
         }
-        reader.readAsDataURL(file)
-      }
+      })
     })
-  })
+  }
 
   function renderPhotoPreview() {
     var html = ""
@@ -76,7 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
       html += '<button type="button" onclick="removePhoto(' + index + ')">&times;</button>'
       html += "</div>"
     })
-    fotoPreview.innerHTML = html
+    if (fotoPreview) {
+      fotoPreview.innerHTML = html
+    }
   }
 
   // Função global para remover foto
@@ -85,67 +96,63 @@ document.addEventListener("DOMContentLoaded", () => {
     renderPhotoPreview()
   }
 
-  // Gerar PDF
-  generatePdfBtn.addEventListener("click", () => {
-    var dados = collectFormData()
-    generatePDF(dados, dados.protocolo)
-  })
-
   // Submeter formulário
-  form.addEventListener("submit", (e) => {
-    e.preventDefault()
+  if (form) {
+    form.addEventListener("submit", (e) => {
+      e.preventDefault()
 
-    var dados = collectFormData()
-    var cpfLimpo = cleanCPF(dados.cpf)
+      var dados = collectFormData()
+      var cpfLimpo = cleanCPF(dados.cpf)
 
-    // Valida CPF
-    if (!validateCPF(dados.cpf)) {
-      showToast("CPF inválido", "error")
-      return
-    }
+      // Valida CPF
+      if (!validateCPF(dados.cpf)) {
+        showToast("CPF inválido", "error")
+        return
+      }
 
-    // Validações básicas
-    if (!dados.nome_cidadao || !dados.endereco || !dados.descricao_situacao) {
-      showToast("Preencha os campos obrigatórios", "error")
-      return
-    }
+      // Validações básicas
+      if (!dados.nome_cidadao || !dados.endereco || !dados.descricao_situacao) {
+        showToast("Preencha os campos obrigatórios", "error")
+        return
+      }
 
-    var submitBtn = form.querySelector('button[type="submit"]')
-    submitBtn.disabled = true
-    submitBtn.innerHTML = '<span class="spinner" style="width:1rem;height:1rem;border-width:2px;"></span> Salvando...'
+      var submitBtn = form.querySelector('button[type="submit"]')
+      submitBtn.disabled = true
+      submitBtn.innerHTML = '<span class="spinner" style="width:1rem;height:1rem;border-width:2px;"></span> Salvando...'
 
-    // Adiciona fotos aos dados
-    dados.fotos = uploadedPhotos
+      // Adiciona fotos aos dados
+      dados.fotos = uploadedPhotos
 
-    supabase
-      .from("relatorios")
-      .insert({
-        protocolo: dados.protocolo,
-        cpf: cpfLimpo,
-        nome_cidadao: dados.nome_cidadao,
-        dados_relatorio: dados,
-        status: "Pendente",
-      })
-      .select()
-      .single()
-      .then((response) => {
-        if (response.error) throw response.error
+      supabase
+        .from("relatorios")
+        .insert({
+          protocolo: dados.protocolo,
+          cpf: cpfLimpo,
+          nome_cidadao: dados.nome_cidadao,
+          dados_relatorio: dados,
+          status: "Pendente",
+        })
+        .select()
+        .single()
+        .then((response) => {
+          if (response.error) throw response.error
 
-        showToast("Relatório salvo com sucesso!", "success")
+          showToast("Relatório salvo com sucesso!", "success")
 
-        // Redireciona após 2 segundos
-        setTimeout(() => {
-          window.location.href = "relatorios.html"
-        }, 2000)
-      })
-      .catch((err) => {
-        console.error("Erro ao salvar:", err)
-        showToast("Erro ao salvar o relatório", "error")
-        submitBtn.disabled = false
-        submitBtn.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Relatório'
-      })
-  })
+          // Redireciona após 2 segundos
+          setTimeout(() => {
+            window.location.href = "relatorios.html"
+          }, 2000)
+        })
+        .catch((err) => {
+          console.error("Erro ao salvar:", err)
+          showToast("Erro ao salvar o relatório", "error")
+          submitBtn.disabled = false
+          submitBtn.innerHTML =
+            '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Salvar Relatório'
+        })
+    })
+  }
 
   function collectFormData() {
     var formData = new FormData(form)
