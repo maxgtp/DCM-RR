@@ -2,12 +2,17 @@
 // Usa funções globais de config.js e utils.js
 
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("[v0] URL completa:", window.location.href)
+  console.log("[v0] Search params:", window.location.search)
+
   // Verifica autenticação
   if (!window.requireAuth()) return
 
   // Pega o ID do relatório da URL
   var urlParams = new URLSearchParams(window.location.search)
   var reportId = urlParams.get("id")
+
+  console.log("[v0] Report ID obtido:", reportId)
 
   if (!reportId) {
     alert("ID do relatório não informado")
