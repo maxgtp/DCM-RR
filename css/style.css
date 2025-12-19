@@ -681,29 +681,32 @@ body {
   margin-bottom: 1rem;
 }
 
+/* Ajustando stats-cards para 4 colunas lado a lado com gap menor */
 .stats-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
 .stat-card {
+  flex: 1 1 0;
+  min-width: 120px;
   background: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 1.25rem;
+  padding: 1rem;
   text-align: center;
 }
 
 .stat-value {
   display: block;
-  font-size: 2rem;
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--primary);
 }
 
 .stat-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--text-muted);
 }
 
@@ -982,8 +985,14 @@ body {
     gap: 0.75rem;
   }
 
+  /* Em telas menores, 2 cards por linha */
   .stats-cards {
-    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .stat-card {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: calc(50% - 0.5rem);
   }
 
   .form-actions {
@@ -996,5 +1005,22 @@ body {
 
   .report-item-actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  /* Em telas muito pequenas, 2 cards por linha ainda */
+  .stat-card {
+    flex: 1 1 calc(50% - 0.25rem);
+    min-width: calc(50% - 0.25rem);
+    padding: 0.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.5rem;
+  }
+
+  .stat-label {
+    font-size: 0.65rem;
   }
 }
