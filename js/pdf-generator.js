@@ -137,7 +137,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   doc.setTextColor(255)
   doc.setFont("helvetica", "bold")
   doc.setFontSize(10)
-  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL/GO", pageWidth / 2, 9, { align: "center" })
+  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL-GO", pageWidth / 2, 9, { align: "center" })
 
   doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
@@ -153,7 +153,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 
   // ===============================
   // ===============================
-  y = 28
+  y = 33
 
   if (dados.classificacao_risco) {
     var corRisco = [100, 100, 100]
