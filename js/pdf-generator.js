@@ -50,7 +50,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   var jsPDF = window.jspdf.jsPDF
   var doc = new jsPDF()
 
-  var y = 10
+  var y = 17
   var margin = 10
   var pageWidth = doc.internal.pageSize.getWidth()
   var pageHeight = doc.internal.pageSize.getHeight()
