@@ -98,7 +98,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     doc.setFillColor(...corPrimaria)
     doc.roundedRect(margin, y, 10, 5, 1.5, 1.5, "F")
 
-    doc.setFontSize(6)
+    doc.setFontSize(7)
     doc.setFont("helvetica", "bold")
     doc.setTextColor(255)
     doc.text(num, margin + 5, y + 3.5, { align: "center" })
@@ -114,7 +114,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     doc.setTextColor(80)
     doc.text(label + ":", x, y + 3.5)
 
-    doc.setFontSize(6)
+    doc.setFontSize(7)
     doc.setFont("helvetica", "normal")
     doc.setTextColor(0)
     doc.text(String(valor || "-"), x + doc.getTextWidth(label + ": ") + 1, y + 3.5, {
@@ -146,7 +146,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   doc.setFillColor(255)
   doc.roundedRect(pageWidth / 2 - 22, 17, 44, 5, 1.5, 1.5, "F")
   doc.setTextColor(...corPrimaria)
-  doc.setFontSize(6)
+  doc.setFontSize(7)
   doc.text("Protocolo: " + (protocolo || "N/A"), pageWidth / 2, 20.5, { align: "center" })
 
   doc.setTextColor(0)
@@ -210,7 +210,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   var solicitacao = (dados.solicitacao || []).join(", ")
   if (dados.solicitacao_outra) solicitacao += " | " + dados.solicitacao_outra
   blocoFundo(rowH)
-  doc.setFontSize(6)
+  doc.setFontSize(7)
   doc.text(solicitacao || "-", margin + 2, y + 3.5)
   y += rowH + 2
 
@@ -219,7 +219,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   var ocorrLines = doc.splitTextToSize(ocorr || "-", contentWidth - 4)
   var ocorrAlt = ocorrLines.length * 3 + 3
   blocoFundo(ocorrAlt)
-  doc.setFontSize(6)
+  doc.setFontSize(7)
   doc.text(ocorrLines, margin + 2, y + 3.5)
   y += ocorrAlt + 2
 
@@ -241,13 +241,13 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   var patLines = doc.splitTextToSize(pat || "-", contentWidth - 4)
   var patAlt = patLines.length * 3 + 3
   blocoFundo(patAlt)
-  doc.setFontSize(6)
+  doc.setFontSize(7)
   doc.text(patLines, margin + 2, y + 3.5)
   y += patAlt + 2
 
   tituloSecao("7", "LOCALIZAÇÃO DA ANOMALIA")
   blocoFundo(rowH)
-  doc.setFontSize(6)
+  doc.setFontSize(7)
   doc.text((dados.local_anomalia || []).join(", ") || "-", margin + 2, y + 3.5)
   y += rowH + 2
 
@@ -265,7 +265,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
     var altura = linhas.length * 2.5 + 2
 
     blocoFundo(altura)
-    doc.setFontSize(6)
+    doc.setFontSize(7)
     doc.setFont("helvetica", "normal")
     doc.setTextColor(0)
     doc.text(linhas, margin + 2, y + 3)
@@ -336,7 +336,7 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   for (var p = 1; p <= total; p++) {
     doc.setPage(p)
     doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10)
-    doc.setFontSize(6)
+    doc.setFontSize(7)
     doc.text("Defesa Civil – Prefeitura Municipal de Cidade Ocidental – GO", margin, pageHeight - 6)
     doc.text(`Página ${p} de ${total}`, pageWidth - margin, pageHeight - 6, { align: "right" })
   }
