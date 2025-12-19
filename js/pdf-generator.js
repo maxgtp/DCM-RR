@@ -287,7 +287,6 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   
   doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y)
   doc.setFontSize(5)
-  y = 15
   doc.text("Assinatura do Agente Responsável", pageWidth / 2, y + 3, { align: "center" })
 
   // ===============================
