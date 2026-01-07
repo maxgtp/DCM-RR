@@ -662,6 +662,11 @@ body {
   color: #2563eb;
 }
 
+.action-icon.sync {
+  background: #fef3c7;
+  color: #f59e0b;
+}
+
 .action-card h3 {
   font-size: 1.125rem;
   margin-bottom: 0.25rem;

@@ -21,6 +21,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Carrega estatísticas
   loadStats()
 
+  // Verifica relatórios pendentes de sincronização
+  verificarPendentes()
+
   function loadStats() {
     supabase
       .from("relatorios")
@@ -42,5 +45,33 @@ document.addEventListener("DOMContentLoaded", () => {
       .catch((err) => {
         console.error("Erro ao carregar estatísticas:", err)
       })
+  }
+
+  function verificarPendentes() {
+    if (!window.SaveManager) return
+
+    var pendentes = window.SaveManager.obterRelatoriosPendentes()
+    var syncBtn = document.getElementById("sync-pending-btn")
+    var countText = document.getElementById("pending-count-text")
+
+    if (pendentes.length > 0) {
+      syncBtn.style.display = "block"
+      countText.textContent = pendentes.length + " relatório(s) aguardando sincronização"
+
+      syncBtn.addEventListener("click", (e) => {
+        e.preventDefault()
+        sincronizarPendentes()
+      })
+    }
+  }
+
+  function sincronizarPendentes() {
+    if (!window.SaveManager) return
+
+    window.SaveManager.sincronizarPendentes(supabase).then(() => {
+      // Atualiza a interface
+      verificarPendentes()
+      loadStats()
+    })
   }
 })

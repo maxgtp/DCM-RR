@@ -6,6 +6,7 @@
     <title>Painel do Agente - Defesa Civil</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/save-progress.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
@@ -70,6 +71,16 @@
                 <h3>Listar Relatórios</h3>
                 <p>Visualizar e gerenciar relatórios existentes</p>
             </a>
+
+            <a href="#" id="sync-pending-btn" class="action-card" style="display: none;">
+                <div class="action-icon sync">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                    </svg>
+                </div>
+                <h3>Sincronizar Pendentes</h3>
+                <p id="pending-count-text">0 relatório(s) aguardando sincronização</p>
+            </a>
         </section>
 
         <section class="stats-section" id="stats-section">
@@ -101,7 +112,11 @@
 
     <!-- Removido auth.js que não existe -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pdf-generator.js"></script>
+    <script src="js/save-manager.js"></script>
     <script src="js/painel.js"></script>
 </body>
 </html>
