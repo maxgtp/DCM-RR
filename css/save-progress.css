@@ -51,53 +51,57 @@
    =============================== */
 
 .progress-modal {
-  text-align: center;
+  text-align: left;
 }
 
 .progress-header h3 {
-  margin: 0 0 0.5rem 0;
-  color: #1e3a5f;
-  font-size: 1.5rem;
+  margin: 0 0 0.35rem 0;
+  color: #0f172a;
+  font-size: 1.4rem;
+  font-weight: 600;
 }
 
 .progress-status {
-  color: #64748b;
-  font-size: 0.95rem;
-  margin-bottom: 1.5rem;
+  color: #475569;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
 }
 
 .progress-bar-container {
-  margin: 1.5rem 0;
+  margin: 1.25rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .progress-bar {
   width: 100%;
-  height: 32px;
-  background: #e2e8f0;
-  border-radius: 16px;
+  height: 12px;
+  background: rgba(15, 23, 42, 0.08);
+  border-radius: 999px;
   overflow: hidden;
   position: relative;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #1e3a5f 0%, #ea580c 100%);
-  border-radius: 16px;
-  transition: width 0.4s ease;
+  background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
+  border-radius: inherit;
+  transition: width 0.35s ease;
   position: relative;
-  overflow: hidden;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
 }
 
 .progress-fill::after {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-  animation: shimmer 1.5s infinite;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.35) 45%, transparent 100%);
+  animation: shimmer 1.4s infinite;
 }
 
 @keyframes shimmer {
@@ -111,16 +115,18 @@
 
 .progress-percentage {
   margin-top: 0.75rem;
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 600;
-  color: #1e3a5f;
+  color: #1e293b;
+  text-align: right;
 }
 
 .progress-details {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   font-size: 0.85rem;
-  color: #64748b;
-  min-height: 20px;
+  color: #536079;
+  min-height: 18px;
+  font-weight: 500;
 }
 
 /* ===============================

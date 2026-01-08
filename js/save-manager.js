@@ -10,6 +10,8 @@ var SaveManager = (function () {
   var STORAGEDB_UNAVAILABLE = "StorageDB indisponível no navegador.";
   var PENDING_PREFIX = "pending-report";
   var RETRY_DELAY_MS = 3000;
+  var PROGRESS_UPLOAD_START = 12;
+  var PROGRESS_UPLOAD_END = 55;
 
   // ===============================
   // INTERFACE DE PROGRESSO
@@ -31,10 +33,35 @@ var SaveManager = (function () {
           <div class="progress-percentage" id="progress-percentage">0%</div>
         </div>
         <div class="progress-details" id="progress-details"></div>
+        <div class="progress-uploads" id="progress-uploads"></div>
       </div>
     `
     document.body.appendChild(modal)
     return modal
+  }
+
+  function delay(ms) {
+    return new Promise(function (resolve) {
+      setTimeout(resolve, ms)
+    })
+  }
+
+  function escapeHTML(value) {
+    if (!value && value !== 0) return ""
+    return String(value).replace(/[&<>"]+/g, function (match) {
+      switch (match) {
+        case "&":
+          return "&amp;"
+        case "<":
+          return "&lt;"
+        case ">":
+          return "&gt;"
+        case '"':
+          return "&quot;"
+        default:
+          return match
+      }
+    })
   }
 
   function criarModalErro(config) {
@@ -105,6 +132,121 @@ var SaveManager = (function () {
   function fecharModalErro() {
     var modal = document.getElementById("save-error-modal")
     if (modal) modal.remove()
+  }
+
+  function getUploadName(foto, index) {
+    if (foto && foto.name) return foto.name
+    return "Imagem " + (index + 1)
+  }
+
+  function inicializarUploadLista(fotos) {
+    var container = document.getElementById("progress-uploads")
+    if (!container) return
+
+    if (!Array.isArray(fotos) || fotos.length === 0) {
+      container.classList.add("is-empty")
+      container.innerHTML = '<div class="progress-upload-empty">Nenhuma imagem para enviar.</div>'
+      return
+    }
+
+    container.classList.remove("is-empty")
+    var fragments = fotos
+      .map(function (foto, index) {
+        var safeName = escapeHTML(getUploadName(foto, index))
+        return (
+          '<div class="progress-upload-item" data-upload-index="' +
+          index +
+          '">' +
+          '<div class="upload-meta">' +
+          '<span class="upload-name">' +
+          safeName +
+          "</span>" +
+          '<span class="upload-percentage" id="upload-percentage-' +
+          index +
+          '">0%</span>' +
+          "</div>" +
+          '<div class="upload-bar">' +
+          '<span class="upload-fill" id="upload-fill-' +
+          index +
+          '"></span>' +
+          "</div>" +
+          "</div>"
+        )
+      })
+      .join("")
+
+    container.innerHTML = fragments
+  }
+
+  function setUploadActive(index) {
+    var items = document.querySelectorAll(".progress-upload-item")
+    items.forEach(function (item) {
+      item.classList.remove("is-active")
+    })
+
+    var current = document.querySelector('[data-upload-index="' + index + '"]')
+    if (current) {
+      current.classList.add("is-active")
+    }
+  }
+
+  function atualizarUploadItem(index, progresso) {
+    var fill = document.getElementById("upload-fill-" + index)
+    var percentage = document.getElementById("upload-percentage-" + index)
+    var value = Math.max(0, Math.min(100, progresso))
+
+    if (fill) fill.style.width = value + "%"
+    if (percentage) percentage.textContent = Math.round(value) + "%"
+  }
+
+  function marcarUploadConcluido(index) {
+    var item = document.querySelector('[data-upload-index="' + index + '"]')
+    if (item) {
+      item.classList.remove("is-active")
+      item.classList.add("is-complete")
+    }
+  }
+
+  function finalizarUploadListaSucesso(total) {
+    if (!total) return
+
+    for (var i = 0; i < total; i++) {
+      atualizarUploadItem(i, 100)
+      marcarUploadConcluido(i)
+    }
+  }
+
+  async function processarUploadsComProgresso(fotos) {
+    if (!Array.isArray(fotos) || fotos.length === 0) {
+      atualizarProgresso(PROGRESS_UPLOAD_START, "Preparando dados...", "Nenhuma imagem para enviar.")
+      return
+    }
+
+    var total = fotos.length
+
+    for (var i = 0; i < total; i++) {
+      setUploadActive(i)
+      var passos = 6
+
+      for (var passo = 1; passo <= passos; passo++) {
+        await delay(120)
+        var progressoItem = (passo / passos) * 100
+        atualizarUploadItem(i, progressoItem)
+
+        var fracao = (i + progressoItem / 100) / total
+        var overall =
+          PROGRESS_UPLOAD_START + fracao * (PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START)
+
+        atualizarProgresso(
+          overall,
+          "Preparando imagens (" + (i + 1) + " de " + total + ")",
+          getUploadName(fotos[i], i)
+        )
+      }
+
+      marcarUploadConcluido(i)
+      await delay(80)
+    }
   }
 
   function mostrarNotificacaoPendencias() {
@@ -184,80 +326,95 @@ var SaveManager = (function () {
   // ===============================
   function salvarComProgresso(dados, supabase, isUpdate, reportId) {
     return new Promise(function (resolve, reject) {
-      var modal = criarModalProgresso()
+      ;(async function () {
+        var modal = criarModalProgresso()
+        var fotos = Array.isArray(dados.fotos) ? dados.fotos.filter(Boolean) : []
 
-      // Simula progresso durante preparação
-      atualizarProgresso(10, "Validando dados...", "")
+        inicializarUploadLista(fotos)
 
-      setTimeout(function () {
-        atualizarProgresso(30, "Conectando ao servidor...", "")
+        try {
+          atualizarProgresso(8, "Validando dados...", "")
+          await delay(160)
 
-        var cpfLimpo = window.cleanCPF(dados.cpf)
-        var operacao
+          await processarUploadsComProgresso(fotos)
 
-        if (isUpdate) {
-          operacao = supabase
-            .from("relatorios")
-            .update({
-              nome_cidadao: dados.nome_cidadao,
-              dados_relatorio: dados,
-              status: dados.status || "Pendente",
-            })
-            .eq("id", reportId)
-        } else {
-          operacao = supabase
-            .from("relatorios")
-            .insert({
-              protocolo: dados.protocolo,
-              cpf: cpfLimpo,
-              nome_cidadao: dados.nome_cidadao,
-              dados_relatorio: dados,
-              status: dados.status || "Pendente",
-            })
-            .select()
-            .single()
-        }
+          atualizarProgresso(
+            PROGRESS_UPLOAD_END + 5,
+            "Conectando ao servidor...",
+            fotos.length ? "Imagens prontas para envio." : "Dados preparados para envio."
+          )
 
-        atualizarProgresso(60, "Enviando dados...", "")
+          await delay(140)
 
-        operacao
-          .then(function (response) {
-            if (response.error) throw response.error
+          var cpfLimpo = window.cleanCPF(dados.cpf)
+          var operacao
 
-            atualizarProgresso(90, "Finalizando...", "")
-
-            setTimeout(function () {
-              atualizarProgresso(100, "Salvo com sucesso!", "")
-
-              setTimeout(function () {
-                fecharModalProgresso()
-                resolve(response)
-              }, 800)
-            }, 300)
-          })
-          .catch(function (err) {
-            console.error("Erro ao salvar:", err)
-            fecharModalProgresso()
-
-            var mensagemErro = !navigator.onLine
-              ? "Sem conexão com a internet"
-              : err.message || "Erro desconhecido"
-
-            registrarErroEmStorage(dados, err).finally(function () {
-              criarModalErro({
-                mainMessage: "Falha ao salvar online.",
-                details: mensagemErro,
-                secondaryMessage: "Os dados foram preservados e poderão ser sincronizados posteriormente.",
-                onRetry: function () {
-                  salvarComProgresso(dados, supabase, isUpdate, reportId)
-                    .then(resolve)
-                    .catch(reject)
-                },
+          if (isUpdate) {
+            operacao = supabase
+              .from("relatorios")
+              .update({
+                nome_cidadao: dados.nome_cidadao,
+                dados_relatorio: dados,
+                status: dados.status || "Pendente",
               })
-              reject(err)
-            })
+              .eq("id", reportId)
+          } else {
+            operacao = supabase
+              .from("relatorios")
+              .insert({
+                protocolo: dados.protocolo,
+                cpf: cpfLimpo,
+                nome_cidadao: dados.nome_cidadao,
+                dados_relatorio: dados,
+                status: dados.status || "Pendente",
+              })
+              .select()
+              .single()
+          }
+
+          atualizarProgresso(72, "Enviando dados...", "Sincronizando com o servidor.")
+
+          var response = await operacao
+          if (response.error) throw response.error
+
+          finalizarUploadListaSucesso(fotos.length)
+
+          atualizarProgresso(94, "Finalizando...", "Gerando confirmações.")
+          await delay(240)
+
+          atualizarProgresso(100, "Salvo com sucesso!", "")
+          await delay(650)
+
+          fecharModalProgresso()
+          resolve(response)
+        } catch (err) {
+          console.error("Erro ao salvar:", err)
+          fecharModalProgresso()
+
+          var mensagemErro = !navigator.onLine
+            ? "Sem conexão com a internet"
+            : err.message || "Erro desconhecido"
+
+          try {
+            await registrarErroEmStorage(dados, err)
+          } catch (storageErr) {
+            console.error("Falha ao registrar erro no StorageDB:", storageErr)
+          }
+
+          criarModalErro({
+            mainMessage: "Falha ao salvar online.",
+            details: mensagemErro,
+            secondaryMessage: "Os dados foram preservados e poderão ser sincronizados posteriormente.",
+            onRetry: function () {
+              salvarComProgresso(dados, supabase, isUpdate, reportId)
+                .then(resolve)
+                .catch(reject)
+            },
           })
-      }, 300)
+
+          reject(err)
+        }
+      })()
     })
   }
 
