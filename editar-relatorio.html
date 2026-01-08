@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Relatório - Defesa Civil</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/save-progress.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Defesa Civil</h1>
+                    <span>Editar Relatório</span>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="relatorios.html" class="btn btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7"/>
+                        <path d="M19 12H5"/>
+                    </svg>
+                    Voltar
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content form-content">
+        <div id="loading-edit" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando relatório...</p>
+        </div>
+
+        <form id="report-form" class="report-form" style="display: none;">
+            <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">1</span>
+                    Identificação
+                </h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="protocolo">Nº do Protocolo</label>
+                        <input type="text" id="protocolo" name="protocolo" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="data_atendimento">Data do Atendimento</label>
+                        <input type="date" id="data_atendimento" name="data_atendimento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="hora_atendimento">Hora</label>
+                        <input type="time" id="hora_atendimento" name="hora_atendimento" required>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 2: DEMANDA -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">2</span>
+                    Demanda
+                </h2>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="nome_cidadao">Nome do Cidadão</label>
+                        <input type="text" id="nome_cidadao" name="nome_cidadao" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cpf">CPF (não editável)</label>
+                        <!-- CPF não pode ser alterado -->
+                        <input type="text" id="cpf" name="cpf" readonly class="readonly-field">
+                    </div>
+                    <div class="form-group">
+                        <label for="rg">RG</label>
+                        <input type="text" id="rg" name="rg">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone</label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="(00) 00000-0000">
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="endereco">Endereço Completo</label>
+                        <input type="text" id="endereco" name="endereco" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="bairro">Bairro</label>
+                        <input type="text" id="bairro" name="bairro" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cidade">Cidade</label>
+                        <input type="text" id="cidade" name="cidade" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="cep">CEP</label>
+                        <input type="text" id="cep" name="cep" placeholder="00000-000" maxlength="9">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 3: SOLICITAÇÃO -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">3</span>
+                    Solicitação
+                </h2>
+                <div class="form-group">
+                    <label>Tipo de Solicitação</label>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="solicitacao" value="Vistoria Técnica">
+                            <span>Vistoria Técnica</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="solicitacao" value="Interdição">
+                            <span>Interdição</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="solicitacao" value="Desinterdição">
+                            <span>Desinterdição</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="solicitacao" value="Avaliação de Risco">
+                            <span>Avaliação de Risco</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="solicitacao" value="Laudo Técnico">
+                            <span>Laudo Técnico</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="solicitacao_outra">Outra (especificar)</label>
+                    <input type="text" id="solicitacao_outra" name="solicitacao_outra">
+                </div>
+            </section>
+
+            <!-- SEÇÃO 4: TIPO DE OCORRÊNCIA -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">4</span>
+                    Tipo de Ocorrência
+                </h2>
+                <div class="form-group">
+                    <label>Selecione o(s) tipo(s)</label>
+                    <div class="checkbox-group three-columns">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Alagamento">
+                            <span>Alagamento</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Deslizamento">
+                            <span>Deslizamento</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Desabamento">
+                            <span>Desabamento</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Incêndio">
+                            <span>Incêndio</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Vendaval">
+                            <span>Vendaval</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Queda de Árvore">
+                            <span>Queda de Árvore</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Risco Estrutural">
+                            <span>Risco Estrutural</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Erosão">
+                            <span>Erosão</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="ocorrencia" value="Rachadura">
+                            <span>Rachadura</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="ocorrencia_outra">Outra (especificar)</label>
+                    <input type="text" id="ocorrencia_outra" name="ocorrencia_outra">
+                </div>
+            </section>
+
+            <!-- SEÇÃO 5: DESCRIÇÃO DA EDIFICAÇÃO -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">5</span>
+                    Descrição da Edificação
+                </h2>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="tipo_edificacao">Tipo de Edificação</label>
+                        <select id="tipo_edificacao" name="tipo_edificacao">
+                            <option value="">Selecione...</option>
+                            <option value="Residencial">Residencial</option>
+                            <option value="Comercial">Comercial</option>
+                            <option value="Industrial">Industrial</option>
+                            <option value="Misto">Misto</option>
+                            <option value="Público">Público</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pavimentos">Nº de Pavimentos</label>
+                        <input type="number" id="pavimentos" name="pavimentos" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="idade_edificacao">Idade da Edificação (anos)</label>
+                        <input type="number" id="idade_edificacao" name="idade_edificacao" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="area_construida">Área Construída (m²)</label>
+                        <input type="number" id="area_construida" name="area_construida" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_estrutura">Tipo de Estrutura</label>
+                        <select id="tipo_estrutura" name="tipo_estrutura">
+                            <option value="">Selecione...</option>
+                            <option value="Alvenaria">Alvenaria</option>
+                            <option value="Concreto Armado">Concreto Armado</option>
+                            <option value="Madeira">Madeira</option>
+                            <option value="Metálica">Metálica</option>
+                            <option value="Mista">Mista</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="tipo_cobertura">Tipo de Cobertura</label>
+                        <select id="tipo_cobertura" name="tipo_cobertura">
+                            <option value="">Selecione...</option>
+                            <option value="Telha Cerâmica">Telha Cerâmica</option>
+                            <option value="Telha Fibrocimento">Telha Fibrocimento</option>
+                            <option value="Laje">Laje</option>
+                            <option value="Telha Metálica">Telha Metálica</option>
+                            <option value="Outra">Outra</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="ocupacao">Situação de Ocupação</label>
+                        <select id="ocupacao" name="ocupacao">
+                            <option value="">Selecione...</option>
+                            <option value="Ocupada">Ocupada</option>
+                            <option value="Desocupada">Desocupada</option>
+                            <option value="Em construção">Em construção</option>
+                            <option value="Abandonada">Abandonada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="moradores">Nº de Moradores/Ocupantes</label>
+                        <input type="number" id="moradores" name="moradores" min="0">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 6: MANIFESTAÇÕES PATOLÓGICAS -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">6</span>
+                    Manifestações Patológicas
+                </h2>
+                <div class="form-group">
+                    <label>Danos Identificados</label>
+                    <div class="checkbox-group three-columns">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Fissuras">
+                            <span>Fissuras</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Trincas">
+                            <span>Trincas</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Rachaduras">
+                            <span>Rachaduras</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Infiltração">
+                            <span>Infiltração</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Mofo/Bolor">
+                            <span>Mofo/Bolor</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Corrosão">
+                            <span>Corrosão</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Desplacamento">
+                            <span>Desplacamento</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Deformação">
+                            <span>Deformação</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="patologia" value="Recalque">
+                            <span>Recalque</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="patologia_outra">Outras (especificar)</label>
+                    <textarea id="patologia_outra" name="patologia_outra" rows="2"></textarea>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 7: LOCALIZAÇÃO DA ANOMALIA -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">7</span>
+                    Localização da Anomalia
+                </h2>
+                <div class="form-group">
+                    <label>Local Afetado</label>
+                    <div class="checkbox-group three-columns">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Fundação">
+                            <span>Fundação</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Pilares">
+                            <span>Pilares</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Vigas">
+                            <span>Vigas</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Lajes">
+                            <span>Lajes</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Paredes">
+                            <span>Paredes</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Cobertura">
+                            <span>Cobertura</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Escadas">
+                            <span>Escadas</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Muros">
+                            <span>Muros</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="local_anomalia" value="Área Externa">
+                            <span>Área Externa</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="local_anomalia_outro">Outro (especificar)</label>
+                    <input type="text" id="local_anomalia_outro" name="local_anomalia_outro">
+                </div>
+            </section>
+
+            <!-- SEÇÃO 8: RELATÓRIO DE VISTORIA -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">8</span>
+                    Relatório de Vistoria
+                </h2>
+                <div class="form-group">
+                    <label for="descricao_situacao">Descrição da Situação Encontrada</label>
+                    <textarea id="descricao_situacao" name="descricao_situacao" rows="4" required placeholder="Descreva detalhadamente a situação encontrada no local..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="analise_tecnica">Análise Técnica</label>
+                    <textarea id="analise_tecnica" name="analise_tecnica" rows="4" placeholder="Apresente a análise técnica dos danos observados..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="classificacao_risco">Classificação de Risco</label>
+                    <select id="classificacao_risco" name="classificacao_risco">
+                        <option value="">Selecione...</option>
+                        <option value="Baixo">Baixo - Sem risco imediato</option>
+                        <option value="Médio">Médio - Requer atenção</option>
+                        <option value="Alto">Alto - Risco significativo</option>
+                        <option value="Crítico">Crítico - Risco iminente</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="recomendacoes">Recomendações</label>
+                    <textarea id="recomendacoes" name="recomendacoes" rows="4" placeholder="Liste as recomendações e medidas a serem tomadas..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="parecer_final">Parecer Final</label>
+                    <textarea id="parecer_final" name="parecer_final" rows="4" placeholder="Conclusão e parecer técnico final..."></textarea>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 9: AGENTE RESPONSÁVEL -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">9</span>
+                    Agente Responsável
+                </h2>
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label for="nome_agente">Nome do Agente</label>
+                        <input type="text" id="nome_agente" name="nome_agente" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="matricula_agente">Matrícula</label>
+                        <input type="text" id="matricula_agente" name="matricula_agente">
+                    </div>
+                    <div class="form-group">
+                        <label for="cargo_agente">Cargo/Função</label>
+                        <input type="text" id="cargo_agente" name="cargo_agente">
+                    </div>
+                </div>
+            </section>
+
+            <!-- SEÇÃO 10: REGISTRO FOTOGRÁFICO -->
+            <section class="form-section">
+                <h2 class="section-title">
+                    <span class="section-number">10</span>
+                    Registro Fotográfico
+                </h2>
+                <div class="form-group">
+                    <label for="fotos">Adicionar Novas Fotos</label>
+                    <input type="file" id="fotos" name="fotos" accept="image/*" multiple>
+                    <small>Selecione uma ou mais fotos do local</small>
+                </div>
+                <div id="foto-preview" class="foto-preview"></div>
+            </section>
+
+            <!-- BOTÕES DE AÇÃO -->
+            <div class="form-actions">
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='relatorios.html'">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+            </div>
+        </form>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Defesa Civil - Prefeitura Municipal. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/pdf-generator.js"></script>
+    <script src="js/storage-db.js"></script>
+    <script src="js/save-manager.js"></script>
+    <script src="js/editar-relatorio.js"></script>
+</body>
+</html>
