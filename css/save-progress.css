@@ -166,13 +166,15 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 320px;
+  flex: 1;
+  min-width: 0;
 }
 
 .upload-percentage {
   font-size: 0.85rem;
   font-weight: 600;
   color: #1e293b;
+  flex-shrink: 0;
 }
 
 .upload-bar {
@@ -196,5 +198,40 @@
   .modal-content {
     width: 95%;
     padding: 1.5rem;
+    max-width: calc(100vw - 2rem);
+  }
+
+  .progress-header h3 {
+    font-size: 1.2rem;
+  }
+
+  .progress-bar-container {
+    padding: 0.6rem 0.85rem;
+  }
+
+  .upload-name {
+    font-size: 0.8rem;
+  }
+
+  .upload-percentage {
+    font-size: 0.8rem;
+  }
+
+  .progress-upload-item {
+    padding: 0.5rem 0.65rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .modal-content {
+    padding: 1.25rem;
+  }
+
+  .progress-header h3 {
+    font-size: 1.1rem;
+  }
+
+  .progress-status {
+    font-size: 0.8rem;
   }
 }
