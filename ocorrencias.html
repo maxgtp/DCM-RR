@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ocorrências - Defesa Civil</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/>
+                        <path d="m9 12 2 2 4-4"/>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Defesa Civil</h1>
+                    <span>Ocorrências</span>
+                </div>
+            </div>
+            <nav class="header-nav">
+                <a href="painel.html" class="btn btn-outline">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m12 19-7-7 7-7"/>
+                        <path d="M19 12H5"/>
+                    </svg>
+                    Voltar
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <section class="search-section">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Buscar por protocolo ou descrição...">
+                <div class="search-buttons">
+                    <button id="search-btn" class="btn btn-primary" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="11" cy="11" r="8"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+                        Buscar
+                    </button>
+                    <button id="filter-btn" class="btn btn-secondary" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                        Filtrar
+                    </button>
+                    <a href="nova-ocorrencia.html" class="btn btn-success">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" x2="12" y1="5" y2="19"/>
+                            <line x1="5" x2="19" y1="12" y2="12"/>
+                        </svg>
+                        Nova Ocorrência
+                    </a>
+                </div>
+            </div>
+            <div id="filter-dropdown" class="filter-dropdown" style="display: none;">
+                <div class="filter-group">
+                    <label for="status-filter">Status:</label>
+                    <select id="status-filter" class="status-filter">
+                        <option value="">Todos</option>
+                        <option value="Em Andamento">Em Andamento</option>
+                        <option value="Concluída">Concluída</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="tipo-filter">Tipo:</label>
+                    <select id="tipo-filter" class="status-filter">
+                        <option value="">Todos</option>
+                        <option value="Alagamento">Alagamento</option>
+                        <option value="Deslizamento">Deslizamento</option>
+                        <option value="Desabamento">Desabamento</option>
+                        <option value="Incêndio">Incêndio</option>
+                        <option value="Vendaval">Vendaval</option>
+                        <option value="Queda de Árvore">Queda de Árvore</option>
+                        <option value="Outro">Outro</option>
+                    </select>
+                </div>
+                <button id="apply-filters" class="btn btn-primary btn-small">Aplicar Filtros</button>
+                <button id="clear-filters" class="btn btn-outline btn-small">Limpar</button>
+            </div>
+        </section>
+
+        <section class="stats-section">
+            <div class="stats-cards">
+                <div class="stat-card">
+                    <span class="stat-value" id="total-ocorrencias">-</span>
+                    <span class="stat-label">Total de Ocorrências</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="andamento-ocorrencias">-</span>
+                    <span class="stat-label">Em Andamento</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="concluidas-ocorrencias">-</span>
+                    <span class="stat-label">Concluídas</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="reports-section">
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Carregando ocorrências...</p>
+            </div>
+
+            <div id="ocorrencias-list" class="reports-list"></div>
+
+            <div id="no-ocorrencias" class="no-results" style="display: none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" x2="12" y1="9" y2="13"/>
+                    <line x1="12" x2="12.01" y1="17" y2="17"/>
+                </svg>
+                <p>Nenhuma ocorrência encontrada</p>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <div id="confirm-modal" class="modal">
+        <div class="modal-content">
+            <h3>Confirmar Exclusão</h3>
+            <p>Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete" class="btn btn-outline">Cancelar</button>
+                <button id="confirm-delete" class="btn btn-danger">Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="finalizar-modal" class="modal">
+        <div class="modal-content">
+            <h3>Finalizar Ocorrência</h3>
+            <p>Deseja marcar esta ocorrência como concluída?</p>
+            <div class="modal-actions">
+                <button id="cancel-finalizar" class="btn btn-outline">Cancelar</button>
+                <button id="confirm-finalizar" class="btn btn-success">Finalizar</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Defesa Civil - Prefeitura Municipal. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/ocorrencias.js"></script>
+</body>
+</html>

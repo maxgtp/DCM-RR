@@ -17,6 +17,22 @@ document.addEventListener("DOMContentLoaded", () => {
   var pendentesCache = []
   var isSyncing = false
 
+  // Tabs
+  var tabs = document.querySelectorAll(".panel-tab")
+  var tabContents = document.querySelectorAll(".tab-content")
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      var targetTab = tab.getAttribute("data-tab")
+
+      tabs.forEach((t) => t.classList.remove("active"))
+      tabContents.forEach((tc) => tc.classList.remove("active"))
+
+      tab.classList.add("active")
+      document.getElementById(targetTab + "-tab").classList.add("active")
+    })
+  })
+
   // Logout
   logoutBtn.addEventListener("click", () => {
     doLogout()
@@ -24,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Carrega estatísticas
   loadStats()
+  loadOcorrenciasStats()
 
   // Verifica relatórios pendentes de sincronização
   verificarPendentes()
@@ -348,6 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
         carregarPendentesNoModal()
         verificarPendentes()
         loadStats()
+        loadOcorrenciasStats()
       })
       .finally(function () {
         isSyncing = false
@@ -393,6 +411,7 @@ document.addEventListener("DOMContentLoaded", () => {
         carregarPendentesNoModal()
         verificarPendentes()
         loadStats()
+        loadOcorrenciasStats()
       })
       .finally(function () {
         isSyncing = false
@@ -421,6 +440,27 @@ document.addEventListener("DOMContentLoaded", () => {
       })
       .catch((err) => {
         console.error("Erro ao carregar estatísticas:", err)
+      })
+  }
+
+  function loadOcorrenciasStats() {
+    supabase
+      .from("ocorrencias")
+      .select("status")
+      .then((response) => {
+        if (response.error) throw response.error
+
+        var data = response.data || []
+        var total = data.length
+        var andamento = data.filter((o) => o.status === "Em Andamento" || !o.status).length
+        var concluidas = data.filter((o) => o.status === "Concluída").length
+
+        document.getElementById("total-ocorrencias").textContent = total
+        document.getElementById("andamento-ocorrencias").textContent = andamento
+        document.getElementById("concluidas-ocorrencias").textContent = concluidas
+      })
+      .catch((err) => {
+        console.error("Erro ao carregar estatísticas de ocorrências:", err)
       })
   }
 
@@ -469,6 +509,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(function () {
           verificarPendentes()
           loadStats()
+          loadOcorrenciasStats()
           if (syncModal) {
             carregarPendentesNoModal()
           }

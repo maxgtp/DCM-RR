@@ -46,77 +46,131 @@
   <main class="main-content panel-content">
     <section class="panel-header">
       <h2>Bem-vindo ao Painel</h2>
-      <p>Gerencie os relatórios de vistoria da Defesa Civil</p>
+      <p>Gerencie ocorrências e relatórios da Defesa Civil</p>
     </section>
 
-    <section class="panel-actions">
-      <a href="novo-relatorio.html" class="action-card">
-        <div class="action-icon create">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-            <polyline points="14 2 14 8 20 8"/>
-            <line x1="12" x2="12" y1="18" y2="12"/>
-            <line x1="9" x2="15" y1="15" y2="15"/>
-          </svg>
-        </div>
-        <h3>Novo Relatório</h3>
-        <p>Criar um novo relatório de vistoria</p>
-      </a>
+    <nav class="panel-tabs">
+      <button class="panel-tab active" data-tab="ocorrencias">Ocorrências</button>
+      <button class="panel-tab" data-tab="relatorios">Relatórios</button>
+    </nav>
 
-      <a href="relatorios.html" class="action-card">
-        <div class="action-icon list">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-            <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
-            <path d="M12 11h4"/>
-            <path d="M12 16h4"/>
-            <path d="M8 11h.01"/>
-            <path d="M8 16h.01"/>
-          </svg>
-        </div>
-        <h3>Listar Relatórios</h3>
-        <p>Visualizar e gerenciar relatórios existentes</p>
-      </a>
+    <div id="ocorrencias-tab" class="tab-content active">
+      <section class="panel-actions">
+        <a href="nova-ocorrencia.html" class="action-card">
+          <div class="action-icon create">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+              <line x1="12" x2="12" y1="9" y2="13"/>
+              <line x1="12" x2="12.01" y1="17" y2="17"/>
+            </svg>
+          </div>
+          <h3>Nova Ocorrência</h3>
+          <p>Registrar uma nova ocorrência</p>
+        </a>
 
-      <a href="#" id="sync-pending-btn" class="action-card" style="display: none;">
-        <div class="action-icon sync">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
-          </svg>
-        </div>
-        <h3>Sincronizar Pendentes</h3>
-        <p id="pending-count-text">0 relatório(s) aguardando sincronização</p>
-      </a>
-    </section>
+        <a href="ocorrencias.html" class="action-card">
+          <div class="action-icon list">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+              <path d="M12 11h4"/>
+              <path d="M12 16h4"/>
+              <path d="M8 11h.01"/>
+              <path d="M8 16h.01"/>
+            </svg>
+          </div>
+          <h3>Listar Ocorrências</h3>
+          <p>Visualizar e gerenciar ocorrências</p>
+        </a>
+      </section>
 
-    <section class="stats-section" id="stats-section">
-      <h3>Estatísticas</h3>
-
-      <div class="stats-cards">
-        <div class="stat-card">
-          <span class="stat-value" id="total-reports">-</span>
-          <span class="stat-label">Total de Relatórios</span>
+      <section class="stats-section">
+        <h3>Estatísticas de Ocorrências</h3>
+        <div class="stats-cards">
+          <div class="stat-card">
+            <span class="stat-value" id="total-ocorrencias">-</span>
+            <span class="stat-label">Total de Ocorrências</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="andamento-ocorrencias">-</span>
+            <span class="stat-label">Em Andamento</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="concluidas-ocorrencias">-</span>
+            <span class="stat-label">Concluídas</span>
+          </div>
         </div>
+      </section>
+    </div>
 
-        <div class="stat-card">
-          <span class="stat-value" id="pending-reports">-</span>
-          <span class="stat-label">Pendentes</span>
-        </div>
+    <div id="relatorios-tab" class="tab-content">
+      <section class="panel-actions">
+        <a href="novo-relatorio.html" class="action-card">
+          <div class="action-icon create">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="12" x2="12" y1="18" y2="12"/>
+              <line x1="9" x2="15" y1="15" y2="15"/>
+            </svg>
+          </div>
+          <h3>Novo Relatório</h3>
+          <p>Criar um novo relatório de vistoria</p>
+        </a>
 
-        <div class="stat-card">
-          <span class="stat-value" id="analysis-reports">-</span>
-          <span class="stat-label">Em Análise</span>
-        </div>
+        <a href="relatorios.html" class="action-card">
+          <div class="action-icon list">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+              <path d="M15 2H9a1 1 0 0 0-1 1v2a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1z"/>
+              <path d="M12 11h4"/>
+              <path d="M12 16h4"/>
+              <path d="M8 11h.01"/>
+              <path d="M8 16h.01"/>
+            </svg>
+          </div>
+          <h3>Listar Relatórios</h3>
+          <p>Visualizar e gerenciar relatórios existentes</p>
+        </a>
 
-        <div class="stat-card">
-          <span class="stat-value" id="completed-reports">-</span>
-          <span class="stat-label">Concluídos</span>
+        <a href="#" id="sync-pending-btn" class="action-card" style="display: none;">
+          <div class="action-icon sync">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+            </svg>
+          </div>
+          <h3>Sincronizar Pendentes</h3>
+          <p id="pending-count-text">0 relatório(s) aguardando sincronização</p>
+        </a>
+      </section>
+
+      <section class="stats-section" id="stats-section">
+        <h3>Estatísticas de Relatórios</h3>
+        <div class="stats-cards">
+          <div class="stat-card">
+            <span class="stat-value" id="total-reports">-</span>
+            <span class="stat-label">Total de Relatórios</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="pending-reports">-</span>
+            <span class="stat-label">Pendentes</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="analysis-reports">-</span>
+            <span class="stat-label">Em Análise</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-value" id="completed-reports">-</span>
+            <span class="stat-label">Concluídos</span>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </main>
 
   <footer class="footer">
