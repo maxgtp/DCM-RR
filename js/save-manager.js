@@ -1,5 +1,5 @@
 // ===============================
-// GERENCIADOR DE SALVAMENTO
+// GERENCIADOR DE SALVAMENTO (COMPLETO)
 // ===============================
 
 var SaveManager = (function () {
@@ -11,9 +11,30 @@ var SaveManager = (function () {
   var PROGRESS_UPLOAD_END = 55
 
   // ===============================
-  // INTERFACE DE PROGRESSO
+  // UTIL
   // ===============================
+
+  function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+  }
+
+  function escapeHTML(value) {
+    if (!value && value !== 0) return ""
+    return String(value).replace(/[&<>"]+/g, m => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+    }[m]))
+  }
+
+  // ===============================
+  // MODAL DE PROGRESSO
+  // ===============================
+
   function criarModalProgresso() {
+    fecharModalProgresso()
+
     var modal = document.createElement("div")
     modal.id = "save-progress-modal"
     modal.className = "modal-overlay"
@@ -36,36 +57,8 @@ var SaveManager = (function () {
       </div>
     `
     document.body.appendChild(modal)
-    return modal
   }
 
-  function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms))
-  }
-
-  function escapeHTML(value) {
-    if (!value && value !== 0) return ""
-    return String(value).replace(/[&<>"]+/g, function (m) {
-      return (
-        {
-          "&": "&amp;",
-          "<": "&lt;",
-          ">": "&gt;",
-          '"': "&quot;",
-        }[m] || m
-      )
-    })
-  }
-
-  function inferirTipoConteudo(dados) {
-    var tipos = ["Texto"]
-    if (dados?.fotos?.length) tipos.push("Imagem")
-    return tipos.join(" + ")
-  }
-
-  // ===============================
-  // PROGRESSO GERAL
-  // ===============================
   function atualizarProgresso(p, status, detalhes) {
     var fill = document.getElementById("progress-fill")
     var perc = document.getElementById("progress-percentage")
@@ -82,16 +75,9 @@ var SaveManager = (function () {
     document.getElementById("save-progress-modal")?.remove()
   }
 
-  function fecharModalErro() {
-    document.getElementById("save-error-modal")?.remove()
-  }
-
   // ===============================
-  // UPLOADS (FILA)
+  // UPLOADS (VISUAL)
   // ===============================
-  function getUploadName(foto, index) {
-    return foto?.name || "Imagem " + (index + 1)
-  }
 
   function inicializarUploadLista(fotos) {
     var container = document.getElementById("progress-uploads")
@@ -101,11 +87,11 @@ var SaveManager = (function () {
 
     if (!fotos.length) {
       container.innerHTML =
-        '<div class="progress-upload-empty">Nenhuma imagem para enviar.</div>'
+        `<div class="progress-upload-empty">Nenhuma imagem para enviar.</div>`
       return
     }
 
-    fotos.forEach(function (foto, index) {
+    fotos.forEach((foto, index) => {
       var el = document.createElement("div")
       el.className = "progress-upload-item"
       el.dataset.uploadIndex = index
@@ -113,7 +99,7 @@ var SaveManager = (function () {
 
       el.innerHTML = `
         <div class="upload-meta">
-          <span class="upload-name">${escapeHTML(getUploadName(foto, index))}</span>
+          <span class="upload-name">${escapeHTML(foto?.name || "Imagem " + (index + 1))}</span>
           <span class="upload-percentage" id="upload-percentage-${index}">0%</span>
         </div>
         <div class="upload-bar">
@@ -140,69 +126,71 @@ var SaveManager = (function () {
   function atualizarUploadItem(index, progresso) {
     var fill = document.getElementById("upload-fill-" + index)
     var perc = document.getElementById("upload-percentage-" + index)
-    var v = Math.max(0, Math.min(100, progresso))
-
-    if (fill) fill.style.width = v + "%"
-    if (perc) perc.textContent = Math.round(v) + "%"
-  }
-
-  function marcarUploadConcluido(index) {
-    var item = document.querySelector(`[data-upload-index="${index}"]`)
-    if (!item) return
-
-    item.classList.remove("is-active")
-    item.classList.add("is-complete")
-
-    setTimeout(() => item.remove(), 500)
+    if (fill) fill.style.width = progresso + "%"
+    if (perc) perc.textContent = Math.round(progresso) + "%"
   }
 
   async function processarUploadsComProgresso(fotos) {
-    if (!fotos.length) {
-      atualizarProgresso(PROGRESS_UPLOAD_START, "Preparando dados...", "")
-      return
-    }
+    if (!fotos.length) return
 
-    var total = fotos.length
-
-    for (let i = 0; i < total; i++) {
+    for (let i = 0; i < fotos.length; i++) {
       setUploadActive(i)
 
       for (let p = 1; p <= 6; p++) {
         await delay(120)
         atualizarUploadItem(i, (p / 6) * 100)
 
-        var overall =
-          PROGRESS_UPLOAD_START +
-          ((i + p / 6) / total) *
-            (PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START)
-
         atualizarProgresso(
-          overall,
-          `Preparando imagens (${i + 1} de ${total})`,
-          getUploadName(fotos[i], i)
+          PROGRESS_UPLOAD_START +
+            ((i + p / 6) / fotos.length) *
+              (PROGRESS_UPLOAD_END - PROGRESS_UPLOAD_START),
+          `Processando imagens (${i + 1}/${fotos.length})`,
+          fotos[i]?.name
         )
       }
 
-      marcarUploadConcluido(i)
+      document
+        .querySelector(`[data-upload-index="${i}"]`)
+        ?.remove()
     }
   }
 
   // ===============================
-  // SALVAMENTO
+  // OFFLINE (StorageDB)
   // ===============================
+
   function salvarOffline(dados) {
     if (!window.StorageDB)
-      return Promise.reject(new Error(STORAGEDB_UNAVAILABLE))
+      throw new Error(STORAGEDB_UNAVAILABLE)
 
     var record = {
       id: `${PENDING_PREFIX}:${dados.protocolo || Date.now()}`,
       protocol: dados.protocolo,
+      nome: dados.nome_cidadao,
       dados,
       savedAt: new Date().toISOString(),
     }
 
-    return window.StorageDB.savePendingReport(record).then(() => record)
+    return window.StorageDB.savePendingReport(record)
   }
+
+  function obterRelatoriosPendentes() {
+    if (!window.StorageDB || !window.StorageDB.getPendingReports)
+      return []
+
+    return window.StorageDB.getPendingReports()
+  }
+
+  function removerRelatorioPendente(id) {
+    if (!window.StorageDB || !window.StorageDB.removePendingReport)
+      return Promise.resolve()
+
+    return window.StorageDB.removePendingReport(id)
+  }
+
+  // ===============================
+  // ONLINE
+  // ===============================
 
   async function salvarComProgresso(dados, supabase, isUpdate, reportId) {
     criarModalProgresso()
@@ -216,40 +204,61 @@ var SaveManager = (function () {
       await processarUploadsComProgresso(fotos)
 
       atualizarProgresso(72, "Enviando dados...")
-      var op = isUpdate
-        ? supabase.from("relatorios").update({
+
+      var res = isUpdate
+        ? await supabase.from("relatorios").update({
             nome_cidadao: dados.nome_cidadao,
             dados_relatorio: dados,
             status: dados.status || "Pendente",
           }).eq("id", reportId)
-        : supabase.from("relatorios").insert({
+        : await supabase.from("relatorios").insert({
             protocolo: dados.protocolo,
-            cpf: window.cleanCPF(dados.cpf),
+            cpf: window.cleanCPF?.(dados.cpf),
             nome_cidadao: dados.nome_cidadao,
             dados_relatorio: dados,
             status: dados.status || "Pendente",
-          }).select().single()
+          })
 
-      var res = await op
       if (res.error) throw res.error
 
       atualizarProgresso(100, "Salvo com sucesso!")
       await delay(500)
       fecharModalProgresso()
       return res
-    } catch (err) {
+    } catch (e) {
       fecharModalProgresso()
       await salvarOffline(dados)
-      throw err
+      throw e
     }
   }
 
+  async function sincronizarPendentes(supabase) {
+    var pendentes = obterRelatoriosPendentes()
+    var resultados = []
+
+    for (var item of pendentes) {
+      try {
+        await salvarComProgresso(item.dados, supabase)
+        await removerRelatorioPendente(item.id)
+        resultados.push({ id: item.id, status: "success" })
+      } catch (e) {
+        resultados.push({ id: item.id, status: "error", error: e })
+      }
+    }
+
+    return resultados
+  }
+
   // ===============================
-  // API
+  // API PÚBLICA (COMPLETA)
   // ===============================
+
   return {
     salvarComProgresso,
     salvarOffline,
+    obterRelatoriosPendentes,
+    removerRelatorioPendente,
+    sincronizarPendentes,
   }
 })()
 
