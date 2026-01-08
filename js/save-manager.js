@@ -1,5 +1,5 @@
 // ===============================
-// GERENCIADOR DE SALVAMENTO (ATUALIZADO / COMPATÍVEL)
+// GERENCIADOR DE SALVAMENTO (FINAL / COMPATÍVEL TOTAL)
 // ===============================
 
 var SaveManager = (function () {
@@ -18,7 +18,7 @@ var SaveManager = (function () {
 
   // ===============================
   // OFFLINE (StorageDB)
-// ===============================
+  // ===============================
 
   function salvarOffline(dados) {
     if (!window.StorageDB) {
@@ -63,21 +63,48 @@ var SaveManager = (function () {
   // ONLINE
   // ===============================
 
-  async function salvarOnline(dados, supabase) {
-    var res = await supabase.from("relatorios").insert({
-      protocolo: dados.protocolo,
-      cpf: window.cleanCPF?.(dados.cpf),
-      nome_cidadao: dados.nome_cidadao,
-      dados_relatorio: dados,
-      status: dados.status || "Pendente",
-    })
+  async function salvarOnline(dados, supabase, isUpdate, reportId) {
+    var query = isUpdate
+      ? supabase
+          .from("relatorios")
+          .update({
+            nome_cidadao: dados.nome_cidadao,
+            dados_relatorio: dados,
+            status: dados.status || "Pendente",
+          })
+          .eq("id", reportId)
+      : supabase
+          .from("relatorios")
+          .insert({
+            protocolo: dados.protocolo,
+            cpf: window.cleanCPF?.(dados.cpf),
+            nome_cidadao: dados.nome_cidadao,
+            dados_relatorio: dados,
+            status: dados.status || "Pendente",
+          })
 
+    var res = await query
     if (res.error) throw res.error
     return res
   }
 
   // ===============================
-  // SINCRONIZAÇÃO (COMPATÍVEL COM PAINEL)
+  // API COMPATÍVEL COM editar-relatorio.js
+  // ===============================
+
+  async function salvarComProgresso(dados, supabase, isUpdate, reportId) {
+    try {
+      // tentativa online direta
+      return await salvarOnline(dados, supabase, isUpdate, reportId)
+    } catch (e) {
+      // fallback offline OBRIGATÓRIO
+      await salvarOffline(dados)
+      throw e
+    }
+  }
+
+  // ===============================
+  // SINCRONIZAÇÃO (PAINEL)
 // ===============================
 
   async function sincronizarPendentes(supabase, options = {}) {
@@ -141,10 +168,11 @@ var SaveManager = (function () {
   }
 
   // ===============================
-  // API PÚBLICA
+  // API PÚBLICA FINAL
   // ===============================
 
   return {
+    salvarComProgresso,
     salvarOffline,
     obterRelatoriosPendentes,
     removerRelatorioPendente,
