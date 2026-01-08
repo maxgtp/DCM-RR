@@ -64,29 +64,33 @@ var SaveManager = (function () {
   // ===============================
 
   async function salvarOnline(dados, supabase, isUpdate, reportId) {
-    var query = isUpdate
-      ? supabase
-          .from("relatorios")
-          .update({
-            nome_cidadao: dados.nome_cidadao,
-            dados_relatorio: dados,
-            status: dados.status || "Pendente",
-          })
-          .eq("id", reportId)
-      : supabase
-          .from("relatorios")
-          .insert({
-            protocolo: dados.protocolo,
-            cpf: window.cleanCPF?.(dados.cpf),
-            nome_cidadao: dados.nome_cidadao,
-            dados_relatorio: dados,
-            status: dados.status || "Pendente",
-          })
+  let query
 
-    var res = await query
-    if (res.error) throw res.error
-    return res
+  if (isUpdate) {
+    query = supabase
+      .from("relatorios")
+      .update({
+        nome_cidadao: dados.nome_cidadao,
+        status: dados.status || "Pendente",
+      })
+      .eq("id", reportId)
+  } else {
+    query = supabase
+      .from("relatorios")
+      .insert({
+        protocolo: dados.protocolo,
+        cpf: window.cleanCPF?.(dados.cpf),
+        nome_cidadao: dados.nome_cidadao,
+        dados_relatorio: dados,
+        status: dados.status || "Pendente",
+      })
   }
+
+  const res = await query
+  if (res.error) throw res.error
+  return res
+}
+
 
   // ===============================
   // API COMPATÍVEL COM editar-relatorio.js
@@ -181,3 +185,4 @@ var SaveManager = (function () {
 })()
 
 window.SaveManager = SaveManager
+
