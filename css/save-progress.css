@@ -24,8 +24,6 @@
   padding: 2rem;
   max-width: 500px;
   width: 90%;
-  max-height: 80vh;              /* 🔒 NUNCA ULTRAPASSA A TELA */
-  overflow: hidden;              /* scroll controlado internamente */
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   animation: slideUp 0.3s ease;
 }
@@ -42,13 +40,11 @@
 }
 
 /* ===============================
-   MODAL DE PROGRESSO
+   MODAL DE PROGRESSO (ÚNICO)
    =============================== */
 
 .progress-modal {
   text-align: left;
-  display: flex;
-  flex-direction: column;
 }
 
 .progress-header h3 {
@@ -84,11 +80,8 @@
 
 .progress-fill {
   height: 100%;
-  width: 0%;
   background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
-  border-radius: inherit;
   transition: width 0.35s ease;
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
 }
 
 .progress-percentage {
@@ -108,7 +101,7 @@
 }
 
 /* ===============================
-   LISTA DE UPLOADS (CORRIGIDA)
+   LISTA DE ITENS (UPLOAD / SYNC)
    =============================== */
 
 .progress-uploads {
@@ -116,22 +109,14 @@
   display: grid;
   gap: 0.5rem;
 
-  max-height: 240px;      /* ✅ LIMITE DA LISTA */
-  overflow-y: auto;       /* ✅ SCROLL VERTICAL */
-  padding-right: 6px;
+  /* 🔥 CORREÇÃO PRINCIPAL */
+  max-height: 48vh;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .progress-uploads.is-empty {
   display: block;
-}
-
-.progress-uploads::-webkit-scrollbar {
-  width: 6px;
-}
-
-.progress-uploads::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.25);
-  border-radius: 999px;
 }
 
 .progress-upload-empty {
@@ -158,7 +143,6 @@
 .upload-meta {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
   gap: 0.75rem;
   margin-bottom: 0.4rem;
 }
@@ -167,16 +151,15 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: #0f172a;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   max-width: 320px;
 }
 
 .upload-percentage {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #1e293b;
 }
 
 .upload-bar {
@@ -187,12 +170,38 @@
 }
 
 .upload-fill {
-  display: block;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
-  border-radius: inherit;
+  background: linear-gradient(90deg, #0ea5e9, #6366f1);
   transition: width 0.25s ease;
+}
+
+/* ===============================
+   MODAL DE ERRO
+   =============================== */
+
+.error-modal {
+  text-align: center;
+}
+
+.error-header h3 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1e3a5f;
+}
+
+.error-message p {
+  margin: 0.75rem 0;
+  color: #475569;
+}
+
+.error-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.error-actions .btn {
+  flex: 1;
 }
 
 /* ===============================
@@ -205,7 +214,7 @@
     padding: 1.5rem;
   }
 
-  .progress-uploads {
-    max-height: 200px;
+  .error-actions {
+    flex-direction: column;
   }
 }
