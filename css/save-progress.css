@@ -1,10 +1,10 @@
-/* ===============================
-   MODAL DE PROGRESSO E ERRO
-   =============================== */
-
+/* =============================== MODAL DE PROGRESSO E ERRO =============================== */
 .modal-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.7);
   display: flex;
   align-items: center;
@@ -39,10 +39,7 @@
   }
 }
 
-/* ===============================
-   MODAL DE PROGRESSO (ÚNICO)
-   =============================== */
-
+/* =============================== MODAL DE PROGRESSO =============================== */
 .progress-modal {
   text-align: left;
 }
@@ -68,6 +65,7 @@
   border-radius: 14px;
   background: #f8fafc;
   border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
 }
 
 .progress-bar {
@@ -76,12 +74,34 @@
   background: rgba(15, 23, 42, 0.08);
   border-radius: 999px;
   overflow: hidden;
+  position: relative;
 }
 
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
+  border-radius: inherit;
   transition: width 0.35s ease;
+  position: relative;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.35) 45%,
+    transparent 100%
+  );
+  animation: shimmer 1.4s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progress-percentage {
@@ -100,19 +120,10 @@
   font-weight: 500;
 }
 
-/* ===============================
-   LISTA DE ITENS (UPLOAD / SYNC)
-   =============================== */
-
 .progress-uploads {
   margin-top: 0.75rem;
   display: grid;
   gap: 0.5rem;
-
-  /* 🔥 CORREÇÃO PRINCIPAL */
-  max-height: 48vh;
-  overflow-y: auto;
-  padding-right: 0.25rem;
 }
 
 .progress-uploads.is-empty {
@@ -143,6 +154,7 @@
 .upload-meta {
   display: flex;
   justify-content: space-between;
+  align-items: baseline;
   gap: 0.75rem;
   margin-bottom: 0.4rem;
 }
@@ -151,15 +163,16 @@
   font-size: 0.85rem;
   font-weight: 600;
   color: #0f172a;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
   max-width: 320px;
 }
 
 .upload-percentage {
   font-size: 0.85rem;
   font-weight: 600;
+  color: #1e293b;
 }
 
 .upload-bar {
@@ -170,51 +183,18 @@
 }
 
 .upload-fill {
+  display: block;
   height: 100%;
   width: 0%;
-  background: linear-gradient(90deg, #0ea5e9, #6366f1);
+  background: linear-gradient(90deg, #0ea5e9 0%, #6366f1 100%);
+  border-radius: inherit;
   transition: width 0.25s ease;
 }
 
-/* ===============================
-   MODAL DE ERRO
-   =============================== */
-
-.error-modal {
-  text-align: center;
-}
-
-.error-header h3 {
-  margin: 0;
-  font-size: 1.5rem;
-  color: #1e3a5f;
-}
-
-.error-message p {
-  margin: 0.75rem 0;
-  color: #475569;
-}
-
-.error-actions {
-  display: flex;
-  gap: 1rem;
-}
-
-.error-actions .btn {
-  flex: 1;
-}
-
-/* ===============================
-   RESPONSIVO
-   =============================== */
-
+/* =============================== RESPONSIVO =============================== */
 @media (max-width: 640px) {
   .modal-content {
     width: 95%;
     padding: 1.5rem;
-  }
-
-  .error-actions {
-    flex-direction: column;
   }
 }
