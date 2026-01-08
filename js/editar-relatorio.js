@@ -12,8 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Pega o ID do relatório da URL
   var urlParams = new URLSearchParams(window.location.search)
   var reportId = urlParams.get("id")
+  var pendingId = urlParams.get("pending")
 
-  if (!reportId) {
+  if (!reportId && !pendingId) {
     alert("ID do relatório não informado")
     window.location.href = "relatorios.html"
     return
@@ -28,9 +29,46 @@ document.addEventListener("DOMContentLoaded", () => {
   var fotoPreview = document.getElementById("foto-preview")
   var uploadedPhotos = []
   var originalCPF = "" // CPF original (não pode ser alterado)
+  var pendingLocalId = pendingId
 
   // Carrega dados do relatório
-  loadReport()
+  if (pendingId) {
+    loadPendingReport(pendingId)
+  } else {
+    loadReport()
+  }
+
+  function loadPendingReport(id) {
+    loadingEdit.style.display = "flex"
+    form.style.display = "none"
+
+    if (!window.StorageDB || !window.StorageDB.getPendingReport) {
+      alert("StorageDB indisponível para carregar pendência")
+      window.location.href = "painel.html"
+      return
+    }
+
+    window.StorageDB
+      .getPendingReport(id)
+      .then(function (item) {
+        if (!item || !item.dados) {
+          alert("Pendência não encontrada")
+          window.location.href = "painel.html"
+          return
+        }
+
+        var dados = item.dados || {}
+
+        fillForm({ dados_relatorio: dados, cpf: dados.cpf || "" })
+        loadingEdit.style.display = "none"
+        form.style.display = "block"
+      })
+      .catch(function (err) {
+        console.error("Erro ao carregar pendência:", err)
+        alert("Erro ao carregar pendência")
+        window.location.href = "painel.html"
+      })
+  }
 
   function loadReport() {
     loadingEdit.style.display = "flex"
@@ -207,9 +245,16 @@ document.addEventListener("DOMContentLoaded", () => {
     dados.fotos = uploadedPhotos
 
     // Usa o SaveManager para salvar com progresso
-    window.SaveManager.salvarComProgresso(dados, supabase, true, reportId)
+    var isUpdate = !pendingLocalId
+    window.SaveManager.salvarComProgresso(dados, supabase, isUpdate, reportId)
       .then((response) => {
         window.showToast("Relatório atualizado com sucesso!", "success")
+
+        if (pendingLocalId && window.StorageDB) {
+          window.StorageDB.removePendingReport(pendingLocalId).catch(function (err) {
+            console.error("Falha ao remover pendência após sucesso:", err)
+          })
+        }
 
         // Redireciona após 2 segundos
         setTimeout(() => {

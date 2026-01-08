@@ -112,6 +112,15 @@
     })
   }
 
+  function getPendingReport(id) {
+    if (!id) return Promise.resolve(null)
+    return withStore("readonly", function (store) {
+      return store.get(id)
+    }).then(function (item) {
+      return item || null
+    })
+  }
+
   function removePendingReport(id) {
     if (!id) return Promise.resolve()
     return withStore("readwrite", function (store) {
@@ -141,6 +150,7 @@
 
   global.StorageDB = {
     savePendingReport: savePendingReport,
+    getPendingReport: getPendingReport,
     listPendingReports: listPendingReports,
     removePendingReport: removePendingReport,
     countPendingReports: countPendingReports,

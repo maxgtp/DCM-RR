@@ -64,6 +64,17 @@ var SaveManager = (function () {
     })
   }
 
+  function inferirTipoConteudo(dados) {
+    var tipos = []
+    tipos.push("Texto")
+
+    if (dados && Array.isArray(dados.fotos) && dados.fotos.length > 0) {
+      tipos.push("Imagem")
+    }
+
+    return tipos.join(" + ")
+  }
+
   function criarModalErro(config) {
     if (!window.StorageDB) {
       return null;
@@ -269,15 +280,25 @@ var SaveManager = (function () {
 
     return window.StorageDB.listPendingReports().then(function (items) {
       return (items || []).map(function (item) {
+        var dados = item.dados || {}
         return {
           id: item.id,
           protocolo: item.protocol,
-          nome: item.dados && item.dados.nome_cidadao,
-          data: (item.dados && item.dados.data_atendimento) || item.savedAt,
-          dados: item.dados,
+          nome: dados.nome_cidadao,
+          data: dados.data_atendimento || item.savedAt,
+          savedAt: item.savedAt,
+          tipo: inferirTipoConteudo(dados),
+          dados: dados,
         }
       })
     })
+  }
+
+  function getErrorMessage(err) {
+    if (!err) return "Erro desconhecido"
+    if (typeof err === "string") return err
+    if (err.message) return err.message
+    return "Erro desconhecido"
   }
 
   function salvarOffline(dados) {
@@ -422,49 +443,100 @@ var SaveManager = (function () {
   // SINCRONIZAÇÃO DE PENDENTES
   // ===============================
   function sincronizarPendentes(supabase) {
+    var options = arguments.length > 1 ? arguments[1] : undefined
+
     if (!window.StorageDB) {
       window.showToast("⚠️ Sincronização offline indisponível neste navegador.", "warning")
       return Promise.resolve([])
     }
 
-    return obterRelatoriosPendentes().then(function (pendentes) {
-      if (!pendentes || pendentes.length === 0) {
-        window.showToast("✅ Nenhum relatório pendente", "info")
-        return []
+    options = options || {}
+
+    function onItemStatus(pendenteId, status, message, index, total) {
+      if (typeof options.onItemStatusChange === "function") {
+        options.onItemStatusChange({
+          id: pendenteId,
+          status: status,
+          message: message || "",
+          index: index,
+          total: total,
+        })
       }
+    }
 
-      window.showToast("🔄 Sincronizando " + pendentes.length + " relatório(s)...", "info")
+    function onProgress(value, label) {
+      if (typeof options.onProgress === "function") {
+        options.onProgress({ percent: value, label: label || "" })
+      }
+    }
 
-      var promessas = pendentes.map(function (pendente) {
-        var dados = pendente.dados || {}
-        var cpfLimpo = window.cleanCPF(dados.cpf)
+    return new Promise(function (resolve) {
+      ;(async function () {
+        var pendentes = await obterRelatoriosPendentes()
 
-        return supabase
-          .from("relatorios")
-          .insert({
-            protocolo: dados.protocolo,
-            cpf: cpfLimpo,
-            nome_cidadao: dados.nome_cidadao,
-            dados_relatorio: dados,
-            status: dados.status || "Pendente",
+        if (options.onlyIds && Array.isArray(options.onlyIds) && options.onlyIds.length > 0) {
+          pendentes = pendentes.filter(function (pendente) {
+            return options.onlyIds.indexOf(pendente.id) !== -1
           })
-          .select()
-          .single()
-          .then(function (response) {
+        }
+
+        if (!pendentes || pendentes.length === 0) {
+          window.showToast("✅ Nenhum relatório pendente", "info")
+          onProgress(100, "Nenhum pendente")
+          resolve([])
+          return
+        }
+
+        var total = pendentes.length
+        onProgress(0, "Iniciando sincronização")
+        window.showToast("🔄 Sincronizando " + total + " relatório(s)...", "info")
+
+        var resultados = []
+
+        for (var i = 0; i < total; i++) {
+          var pendente = pendentes[i]
+          var dados = pendente.dados || {}
+          var pendenteId = pendente.id
+
+          onItemStatus(pendenteId, "syncing", "", i, total)
+          onProgress(Math.round((i / total) * 100), "Sincronizando " + (i + 1) + " de " + total)
+
+          try {
+            var cpfLimpo = window.cleanCPF(dados.cpf)
+
+            var response = await supabase
+              .from("relatorios")
+              .insert({
+                protocolo: dados.protocolo,
+                cpf: cpfLimpo,
+                nome_cidadao: dados.nome_cidadao,
+                dados_relatorio: dados,
+                status: dados.status || "Pendente",
+              })
+              .select()
+              .single()
+
             if (response.error) {
               throw response.error
             }
-            return window.StorageDB.removePendingReport(pendente.id || pendente.protocol).then(function () {
-              return { sucesso: true, protocolo: dados.protocolo }
-            })
-          })
-          .catch(function (erro) {
-            console.error("Erro ao sincronizar relatório", pendente, erro)
-            return { sucesso: false, protocolo: dados.protocolo, erro: erro }
-          })
-      })
 
-      return Promise.all(promessas).then(function (resultados) {
+            await window.StorageDB.removePendingReport(pendenteId)
+            resultados.push({ sucesso: true, id: pendenteId, protocolo: dados.protocolo })
+            onItemStatus(pendenteId, "success", "", i, total)
+          } catch (err) {
+            var msg = getErrorMessage(err)
+            if (msg && msg.toLowerCase().indexOf("failed to fetch") !== -1) {
+              msg = "Falha de conexão/CORS ao acessar o Supabase. Verifique se o domínio está autorizado."
+            }
+
+            console.error("Erro ao sincronizar relatório", pendente, err)
+            resultados.push({ sucesso: false, id: pendenteId, protocolo: dados.protocolo, erro: err })
+            onItemStatus(pendenteId, "error", msg, i, total)
+          }
+        }
+
+        onProgress(100, "Concluído")
+
         var sucessos = resultados.filter(function (r) {
           return r.sucesso
         }).length
@@ -478,8 +550,8 @@ var SaveManager = (function () {
         }
 
         mostrarNotificacaoPendencias()
-        return resultados
-      })
+        resolve(resultados)
+      })()
     })
   }
 
