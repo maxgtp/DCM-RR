@@ -47,8 +47,8 @@ document.addEventListener("DOMContentLoaded", () => {
             gravidade: dados.gravidade,
             nome_solicitante: dados.nome_solicitante,
             telefone_solicitante: dados.telefone_solicitante,
+            cpf_solicitante: dados.cpf_solicitante,
             nome_agente: dados.nome_agente,
-            matricula_agente: dados.matricula_agente,
             status: "Em Andamento",
           },
         ])
@@ -89,8 +89,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "gravidade",
       "nome_solicitante",
       "telefone_solicitante",
+      "cpf_solicitante",
       "nome_agente",
-      "matricula_agente",
     ]
 
     fields.forEach((field) => {

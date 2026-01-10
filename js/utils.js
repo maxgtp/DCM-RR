@@ -109,6 +109,55 @@ function imageToBase64(file) {
   })
 }
 
+// Converte Blob para dataURL
+function blobToDataURL(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = reject
+    reader.readAsDataURL(blob)
+  })
+}
+
+// Compacta uma imagem File/Blob para um Blob redimensionado e com qualidade
+function compressImage(fileOrBlob, maxWidth = 1600, quality = 0.8, outputType = 'image/jpeg') {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const img = new Image()
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width)
+        const canvas = document.createElement('canvas')
+        canvas.width = Math.round(img.width * scale)
+        canvas.height = Math.round(img.height * scale)
+        const ctx = canvas.getContext('2d')
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob)
+            else reject(new Error('Falha ao gerar blob comprimido'))
+          },
+          outputType,
+          quality,
+        )
+      }
+      img.onerror = reject
+      img.src = reader.result
+    }
+    reader.onerror = reject
+
+    if (fileOrBlob instanceof Blob) reader.readAsDataURL(fileOrBlob)
+    else reader.readAsDataURL(fileOrBlob)
+  })
+}
+
+// Gera uma thumbnail em dataURL e Blob a partir de um File/Blob
+async function generateThumbnail(fileOrBlob, maxWidth = 400, quality = 0.75, outputType = 'image/jpeg') {
+  const blob = await compressImage(fileOrBlob, maxWidth, quality, outputType)
+  const dataUrl = await blobToDataURL(blob)
+  return { blob: blob, dataUrl: dataUrl }
+}
+
 // Obtém classe CSS do status
 function getStatusClass(status) {
   const statusMap = {

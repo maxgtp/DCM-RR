@@ -49,7 +49,7 @@ function carregarLogos() {
 // ===============================
 // CRIAÇÃO DO PDF
 // ===============================
-function criarDocumentoPDF(dados, protocolo, logos) {
+async function criarDocumentoPDF(dados, protocolo, logos) {
   var jsPDF = window.jspdf.jsPDF
   var doc = new jsPDF("p", "mm", "a4")
 
@@ -280,9 +280,8 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 
   tituloSecao("9", "AGENTE RESPONSÁVEL")
   blocoFundo(rowH)
-  campo("Nome", dados.nome_agente, margin + 2, 60)
-  campo("Matrícula", dados.matricula_agente, margin + 70, 30)
-  campo("Cargo", dados.cargo_agente, margin + 105, 40)
+  campo("Nome", dados.nome_agente, margin + 2, 80)
+  campo("Cargo", dados.cargo_agente, margin + 84, 80)
   y += rowH + 45
 
   doc.line(pageWidth / 2 - 45, y, pageWidth / 2 + 45, y)
@@ -293,6 +292,29 @@ function criarDocumentoPDF(dados, protocolo, logos) {
   // REGISTRO FOTOGRÁFICO (CENTRALIZADO)
   // ===============================
   if ((dados.fotos || []).length > 0) {
+    // Converte qualquer foto com URL em base64 para compatibilidade com jsPDF
+    var fotosPromises = (dados.fotos || []).map(async (foto) => {
+      if (!foto) return foto
+      if (foto.data) return foto
+      // Se tiver path mas não url, solicite uma URL assinada/pública sob demanda
+      if (!foto.url && foto.path) {
+        try {
+          var url = await window.getStorageFileUrl(foto.path)
+          if (url) foto.url = url
+        } catch (e) {
+          console.error('Erro obtendo URL para PDF:', e)
+        }
+      }
+      if (foto.url || foto.thumbUrl) {
+        var useUrl = foto.thumbUrl || foto.url
+        var base = await carregarImagemBase64(useUrl)
+        return Object.assign({}, foto, { data: base })
+      }
+      return foto
+    })
+
+    dados.fotos = await Promise.all(fotosPromises)
+
     doc.addPage()
     y = 12
 
@@ -350,11 +372,104 @@ function criarDocumentoPDF(dados, protocolo, logos) {
 // EXPORTAÇÃO
 // ===============================
 function generatePDF(dados, protocolo) {
-  carregarLogos().then((logos) => criarDocumentoPDF(dados, protocolo, logos).output("dataurlnewwindow"))
+  carregarLogos().then(async (logos) => {
+    var doc = await criarDocumentoPDF(dados, protocolo, logos)
+    doc.output("dataurlnewwindow")
+  })
+}
+
+function makePdfFilename(dados, protocolo) {
+  var base = (dados && (dados.nome_cidadao || dados.nome_agente)) || protocolo || 'vistoria'
+  // remove acentos, caracteres especiais e espaços substituídos por underline
+  try {
+    base = String(base)
+      .normalize('NFD')
+      .replace(/\p{Diacritic}/gu, '')
+      .replace(/[^\w\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '_')
+  } catch (e) {
+    base = String(base).replace(/\s+/g, '_')
+  }
+  if (!base) base = 'vistoria'
+  return `relatorio_${base}.pdf`
 }
 
 function downloadPDF(dados, protocolo) {
-  carregarLogos().then((logos) =>
-    criarDocumentoPDF(dados, protocolo, logos).save(`relatorio_${protocolo || "vistoria"}.pdf`),
-  )
+  carregarLogos().then(async (logos) => {
+    var doc = await criarDocumentoPDF(dados, protocolo, logos)
+    var filename = makePdfFilename(dados, protocolo)
+    doc.save(filename)
+  })
+}
+
+
+
+// Abre o PDF em uma nova janela usando Blob URL. Se o popup for bloqueado, abre o viewer modal como fallback.
+function openPDFInNewWindow(dados, protocolo) {
+  carregarLogos().then(async (logos) => {
+    var doc = await criarDocumentoPDF(dados, protocolo, logos)
+    try {
+      var blob = doc.output('blob')
+    } catch (e) {
+      var dataUrl = doc.output('datauristring')
+      var arr = dataUrl.split(',')
+      var mime = arr[0].match(/:(.*?);/)[1]
+      var bstr = atob(arr[1])
+      var n = bstr.length
+      var u8arr = new Uint8Array(n)
+      while (n--) u8arr[n] = bstr.charCodeAt(n)
+      var blob = new Blob([u8arr], { type: mime })
+    }
+
+    var url = URL.createObjectURL(blob)
+    var filename = makePdfFilename(dados, protocolo)
+
+    // Abre uma nova aba vazia e escreve um HTML que define o título (nome do arquivo), embute o PDF e expõe um botão de download com o nome correto
+    var win = null
+    try {
+      win = window.open('', '_blank')
+    } catch (e) {
+      win = null
+    }
+
+    if (!win) {
+      if (window && window.showToast) window.showToast('Popup bloqueado — iniciando download', 'warning')
+      try {
+        var a = document.createElement('a')
+        a.href = url
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+      } catch (e) {
+        console.error('Falha no fallback de download do PDF:', e)
+      }
+    } else {
+      try {
+var page = `<!doctype html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>${filename}</title><style>html,body{height:100%;margin:0}iframe{border:0;width:100%;height:100%}</style></head><body><iframe src="${url}#zoom=page-width" title="${filename}"></iframe></body></html>`;
+        win.document.open()
+        win.document.write(page)
+        win.document.close()
+        try {
+          win.focus()
+        } catch (e) {}
+      } catch (e) {
+        console.error('Erro ao abrir PDF na nova aba, iniciando download como fallback:', e)
+        try {
+          var a = document.createElement('a')
+          a.href = url
+          a.download = filename
+          document.body.appendChild(a)
+          a.click()
+          a.remove()
+        } catch (e2) {
+          console.error('Falha no fallback de download do PDF:', e2)
+        }
+      }
+    }
+
+    // Nota: não revogar imediatamente a URL para manter o PDF disponível na aba;
+    // o browser deve liberar o recurso quando a aba for fechada, ou podemos revogar mais tarde se necessário.
+  })
 }

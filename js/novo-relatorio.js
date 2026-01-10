@@ -61,17 +61,27 @@ document.addEventListener("DOMContentLoaded", () => {
     fotoInput.addEventListener("change", (e) => {
       var files = Array.from(e.target.files)
 
-      files.forEach((file) => {
-        if (file.type.startsWith("image/")) {
-          var reader = new FileReader()
-          reader.onload = (event) => {
+      files.forEach(async (file) => {
+        if (file.type && file.type.startsWith("image/")) {
+          try {
+            // Compress image para tamanho principal
+            var compressedBlob = await compressImage(file, 1600, 0.8, 'image/jpeg')
+            var dataUrl = await blobToDataURL(compressedBlob)
+
+            // Gera thumbnail
+            var thumb = await generateThumbnail(compressedBlob, 400, 0.75, 'image/jpeg')
+
             uploadedPhotos.push({
               name: file.name,
-              data: event.target.result,
+              data: dataUrl,
+              thumbData: thumb.dataUrl,
+              size: compressedBlob.size,
             })
+
             renderPhotoPreview()
+          } catch (e) {
+            console.error('Erro ao processar imagem:', e)
           }
-          reader.readAsDataURL(file)
         }
       })
     })
@@ -80,13 +90,32 @@ document.addEventListener("DOMContentLoaded", () => {
   function renderPhotoPreview() {
     var html = ""
     uploadedPhotos.forEach((photo, index) => {
+      var src = photo.thumbData || photo.data || photo.url || ''
+      var dataPath = photo.path ? ' data-path="' + photo.path + '"' : ''
       html += '<div class="foto-preview-item">'
-      html += '<img src="' + photo.data + '" alt="' + photo.name + '">'
+      html += '<img src="' + src + '" alt="' + (photo.name || '') + '"' + dataPath + '>'
       html += '<button type="button" onclick="removePhoto(' + index + ')">&times;</button>'
       html += "</div>"
     })
     if (fotoPreview) {
       fotoPreview.innerHTML = html
+
+      // Para fotos que só têm 'path', busque signed/public URL sob demanda
+      Array.from(fotoPreview.querySelectorAll('img[data-path]')).forEach(async (imgEl) => {
+        if (imgEl.src && imgEl.src.length > 0) return
+        var path = imgEl.getAttribute('data-path')
+        try {
+          var url = await window.getStorageFileUrl(path)
+          if (url) {
+            imgEl.src = url
+            // atualiza também no array uploadedPhotos
+            var p = uploadedPhotos.find((p) => p.path === path)
+            if (p) p.url = url
+          }
+        } catch (e) {
+          console.error('Erro obtendo URL da imagem:', e)
+        }
+      })
     }
   }
 
@@ -177,7 +206,6 @@ document.addEventListener("DOMContentLoaded", () => {
       "recomendacoes",
       "parecer_final",
       "nome_agente",
-      "matricula_agente",
       "cargo_agente",
     ]
 

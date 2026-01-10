@@ -301,6 +301,114 @@ var SaveManager = (function () {
     return "Erro desconhecido"
   }
 
+  // Converte dataURL para Blob
+  function dataURLtoBlob(dataurl) {
+    if (!dataurl) return null
+    var arr = dataurl.split(',')
+    var mime = arr[0].match(/:(.*?);/)
+    mime = mime ? mime[1] : 'application/octet-stream'
+    var bstr = atob(arr[1])
+    var n = bstr.length
+    var u8arr = new Uint8Array(n)
+    while (n--) {
+      u8arr[n] = bstr.charCodeAt(n)
+    }
+    return new Blob([u8arr], { type: mime })
+  }
+
+  // Faz upload das fotos para o Supabase Storage e retorna uma lista { name, url }
+  async function uploadFotosAoStorage(supabase, protocolo, fotos) {
+    if (!supabase) throw new Error('Supabase não inicializado')
+    if (!Array.isArray(fotos) || fotos.length === 0) return []
+
+    var resultado = []
+
+    for (var i = 0; i < fotos.length; i++) {
+      var foto = fotos[i]
+      if (!foto) continue
+
+      // Se já tem URL pública, mantém
+      if (foto.url) {
+        resultado.push({ name: foto.name || ('imagem-' + i), url: foto.url })
+        continue
+      }
+
+      // Suporta objetos com { data: dataURL, name } ou dataURL puro
+      var dataUrl = foto.data || foto
+      if (!dataUrl || (typeof dataUrl !== 'string')) {
+        // ignora
+        continue
+      }
+
+      var blob = dataURLtoBlob(dataUrl)
+      if (!blob) continue
+
+      var ext = blob.type && blob.type.indexOf('png') !== -1 ? 'png' : 'jpg'
+      var safeName = (foto.name || ('foto-' + Date.now() + '-' + i)).replace(/\s+/g, '_')
+      var path = 'relatorios/' + (protocolo || Date.now()) + '/' + Date.now() + '-' + safeName + '.' + ext
+
+      // Upload
+      var upload = await supabase.storage.from(SUPABASE_BUCKET).upload(path, blob, { contentType: blob.type, upsert: false })
+
+      if (upload.error) {
+        // Não interrompe todo o processo; registramos a falha para upload posterior e mantemos os dados inline
+        console.warn('Upload falhou para', path, upload.error)
+        resultado.push({ name: foto.name || safeName, path: path, url: null, uploadError: true, error: upload.error, data: dataUrl })
+        continue
+      }
+
+      // Get URL: se usamos Signed URLs, gere e retorne (também guardamos path); se não, obtenha publicUrl
+      var publicUrl = null
+      if (typeof SUPABASE_USE_SIGNED_URLS !== 'undefined' && SUPABASE_USE_SIGNED_URLS) {
+        try {
+          var signed = await supabase.storage.from(SUPABASE_BUCKET).createSignedUrl(path, SUPABASE_SIGNED_URL_EXPIRATION)
+          if (signed && signed.data) publicUrl = signed.data.signedUrl || signed.data.signedURL || signed.data.signedurl || null
+          else if (signed && signed.signedURL) publicUrl = signed.signedURL
+        } catch (e) {
+          console.warn('Falha ao criar signed URL para', path, e)
+        }
+      } else {
+        try {
+          var pub = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path)
+          if (pub) {
+            if (pub.data && pub.data.publicUrl) publicUrl = pub.data.publicUrl
+            else if (pub.publicURL) publicUrl = pub.publicURL
+            else if (pub.publicUrl) publicUrl = pub.publicUrl
+          }
+        } catch (e) {
+          console.warn('Falha ao obter public URL para', path, e)
+        }
+      }
+
+      // Se tiver thumbData, tente fazer upload da thumbnail também
+      var thumbUrl = null
+      var thumbPath = null
+      if (foto.thumbData) {
+        try {
+          var thumbBlob = dataURLtoBlob(foto.thumbData)
+          var thumbExt = thumbBlob.type && thumbBlob.type.indexOf('png') !== -1 ? 'png' : 'jpg'
+          thumbPath = 'relatorios/' + (protocolo || Date.now()) + '/thumb-' + Date.now() + '-' + safeName + '.' + thumbExt
+          var uploadThumb = await supabase.storage.from(SUPABASE_BUCKET).upload(thumbPath, thumbBlob, { contentType: thumbBlob.type, upsert: false })
+          if (!uploadThumb.error) {
+            if (typeof SUPABASE_USE_SIGNED_URLS !== 'undefined' && SUPABASE_USE_SIGNED_URLS) {
+              var signedThumb = await supabase.storage.from(SUPABASE_BUCKET).createSignedUrl(thumbPath, SUPABASE_SIGNED_URL_EXPIRATION)
+              if (signedThumb && signedThumb.data) thumbUrl = signedThumb.data.signedUrl || signedThumb.data.signedURL || null
+            } else {
+              var pubThumb = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(thumbPath)
+              if (pubThumb && pubThumb.data) thumbUrl = pubThumb.data.publicUrl || pubThumb.data.publicURL || null
+            }
+          }
+        } catch (e) {
+          console.warn('Falha ao subir thumbnail para', path, e)
+        }
+      }
+
+      resultado.push({ name: foto.name || safeName, path: path, url: publicUrl, thumbPath: thumbPath, thumbUrl: thumbUrl })
+    }
+
+    return resultado
+  }
+
   function salvarOffline(dados) {
     if (!window.StorageDB) {
       return Promise.reject(new Error(STORAGEDB_UNAVAILABLE))
@@ -366,6 +474,27 @@ var SaveManager = (function () {
           )
 
           await delay(140)
+
+          // Upload de imagens para o Storage (se houver)
+          try {
+            if (fotos && fotos.length > 0) {
+              atualizarProgresso(76, "Enviando imagens ao Storage...", "Subindo imagens para o bucket")
+              var protocoloParaUpload = dados.protocolo || ('p' + Date.now())
+              var fotosUpload = await uploadFotosAoStorage(supabase, protocoloParaUpload, fotos)
+              // Substitui as fotos por objetos { name, url } ou { name, data, uploadError }
+              dados.fotos = fotosUpload
+
+              // Se alguma falhou no upload, notifica e preserva os dados inline
+              var falhas = fotosUpload.filter(function (f) {
+                return f && f.uploadError
+              })
+              if (falhas && falhas.length > 0) {
+                window.showToast('⚠️ Algumas imagens não puderam ser enviadas ao Storage; elas foram preservadas no relatório e serão sincronizadas posteriormente.', 'warning')
+              }
+            }
+          } catch (uploadErr) {
+            throw uploadErr
+          }
 
           var cpfLimpo = window.cleanCPF(dados.cpf)
           var operacao
@@ -503,6 +632,25 @@ var SaveManager = (function () {
 
           try {
             var cpfLimpo = window.cleanCPF(dados.cpf)
+
+            // Se houver fotos locais (data URLs), carregue para o Storage antes de inserir
+            try {
+              var fotosAtuais = Array.isArray(dados.fotos) ? dados.fotos.filter(Boolean) : []
+              if (fotosAtuais.length > 0) {
+                var precisaUpload = fotosAtuais.some(function (f) {
+                  return f && (f.data || !f.url)
+                })
+
+                if (precisaUpload) {
+                  var protocoloParaUpload = dados.protocolo || ('p' + Date.now())
+                  var fotosUploadLocal = await uploadFotosAoStorage(supabase, protocoloParaUpload, fotosAtuais)
+                  dados.fotos = fotosUploadLocal
+                }
+              }
+            } catch (uploadErr) {
+              console.error('Erro ao fazer upload de fotos antes da sincronização:', uploadErr)
+              // registrar erro e continuar (não interromper toda a sincronização)
+            }
 
             var response = await supabase
               .from("relatorios")

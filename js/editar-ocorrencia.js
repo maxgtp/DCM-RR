@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("gravidade").value = ocorrencia.gravidade || ""
     document.getElementById("nome_solicitante").value = ocorrencia.nome_solicitante || ""
     document.getElementById("telefone_solicitante").value = ocorrencia.telefone_solicitante || ""
+    document.getElementById("cpf_solicitante").value = ocorrencia.cpf_solicitante || ""
     document.getElementById("nome_agente").value = ocorrencia.nome_agente || ""
-    document.getElementById("matricula_agente").value = ocorrencia.matricula_agente || ""
   }
 
   if (form) {
@@ -99,8 +99,8 @@ document.addEventListener("DOMContentLoaded", () => {
           gravidade: dados.gravidade,
           nome_solicitante: dados.nome_solicitante,
           telefone_solicitante: dados.telefone_solicitante,
+          cpf_solicitante: dados.cpf_solicitante,
           nome_agente: dados.nome_agente,
-          matricula_agente: dados.matricula_agente,
         })
         .eq("id", ocorrenciaId)
         .then((response) => {
@@ -138,8 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
       "gravidade",
       "nome_solicitante",
       "telefone_solicitante",
+      "cpf_solicitante",
       "nome_agente",
-      "matricula_agente",
     ]
 
     fields.forEach((field) => {

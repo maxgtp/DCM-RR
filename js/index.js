@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
           report.id +
           "')\">" +
           '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>' +
-          " Baixar em PDF" +
+          " Ver PDF" +
           "</button>" +
           "</div>"
       }
@@ -136,8 +136,8 @@ function baixarRelatorioPDF(id) {
       if (response.error) throw response.error
 
       if (response.data && response.data.dados_relatorio) {
-        // Usa a função downloadPDF do pdf-generator.js que faz download direto
-        window.downloadPDF(response.data.dados_relatorio, response.data.protocolo)
+        // Abre o PDF em nova janela para que o navegador utilize seu viewer nativo
+        window.openPDFInNewWindow(response.data.dados_relatorio, response.data.protocolo)
       }
     })
     .catch((err) => {
