@@ -1279,3 +1279,23 @@ body {
   background: #dcfce7;
   color: #166534;
 }
+
+.botao-download {
+  display: none;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #4CAF50;
+  color: #fff;
+  cursor: pointer;
+}
+
+/* Apenas em dispositivos móveis */
+@media only screen and (max-width: 768px) {
+  .botao-download {
+    display: block;
+  }
+}
