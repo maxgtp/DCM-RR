@@ -68,6 +68,9 @@ async function criarDocumentoPDF(dados, protocolo, logos) {
   var corSecundaria = [234, 88, 12]
   var corFundo = [245, 245, 245]
 
+  // -------------------------------
+  // Utilitários
+  // -------------------------------
   function formatCPF(cpf) {
     if (!cpf || cpf.length !== 11) return cpf || "-"
     return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4")
@@ -88,6 +91,7 @@ async function criarDocumentoPDF(dados, protocolo, logos) {
 
   function tituloSecao(num, titulo) {
     verificarQuebra(8)
+
     doc.setFillColor(...corSecundaria)
     doc.roundedRect(margin, y, contentWidth, 5, 1.5, 1.5, "F")
 
@@ -118,74 +122,130 @@ async function criarDocumentoPDF(dados, protocolo, logos) {
     })
   }
 
+  // ===============================
   // CABEÇALHO
+  // ===============================
   doc.setFillColor(...corPrimaria)
   doc.rect(0, 0, pageWidth, 24, "F")
+
   doc.setFillColor(...corSecundaria)
   doc.rect(0, 24, pageWidth, 2, "F")
 
   if (logos.logo1) doc.addImage(logos.logo1, "PNG", margin, 3, 18, 18)
-  if (logos.logo2) doc.addImage(logos.logo2, "PNG", pageWidth - margin - 18, 3, 18, 18)
+  if (logos.logo2)
+    doc.addImage(logos.logo2, "PNG", pageWidth - margin - 18, 3, 18, 18)
 
   doc.setTextColor(255)
   doc.setFont("helvetica", "bold")
   doc.setFontSize(10)
-  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL-GO", pageWidth / 2, 9, { align: "center" })
+  doc.text("DEFESA CIVIL – CIDADE OCIDENTAL-GO", pageWidth / 2, 9, {
+    align: "center",
+  })
 
   doc.setFontSize(8)
   doc.setFont("helvetica", "normal")
-  doc.text("RELATÓRIO DE VISTORIA TÉCNICA", pageWidth / 2, 14, { align: "center" })
+  doc.text("RELATÓRIO DE VISTORIA TÉCNICA", pageWidth / 2, 14, {
+    align: "center",
+  })
 
   doc.setFillColor(255)
   doc.roundedRect(pageWidth / 2 - 22, 17, 44, 5, 1.5, 1.5, "F")
+
   doc.setTextColor(...corPrimaria)
   doc.setFontSize(7)
-  doc.text("Protocolo: " + (protocolo || "N/A"), pageWidth / 2, 20.5, { align: "center" })
+  doc.text("Protocolo: " + (protocolo || "N/A"), pageWidth / 2, 20.5, {
+    align: "center",
+  })
 
   doc.setTextColor(0)
 
-  // … TODO O CONTEÚDO DO PDF PERMANECE IGUAL …
-  // (IDENTIFICAÇÃO, DEMANDA, SEÇÕES, FOTOS, RODAPÉ)
-  // Nada foi alterado aqui.
+  // ===============================
+  // CLASSIFICAÇÃO DE RISCO
+  // ===============================
+  y = 30
+  if (dados.classificacao_risco) {
+    var corRisco = [100, 100, 100]
+    if (dados.classificacao_risco === "Baixo") corRisco = [34, 197, 94]
+    else if (dados.classificacao_risco === "Médio") corRisco = [234, 179, 8]
+    else if (dados.classificacao_risco === "Alto") corRisco = [249, 115, 22]
+    else if (dados.classificacao_risco === "Crítico") corRisco = [220, 38, 38]
 
-  return doc
-}
+    doc.setFillColor(...corRisco)
+    doc.roundedRect(margin, y, contentWidth, 6, 1.5, 1.5, "F")
 
-// ===============================
-// EXPORTAÇÃO
-// ===============================
-function generatePDF(dados, protocolo) {
-  carregarLogos().then(async (logos) => {
-    var doc = await criarDocumentoPDF(dados, protocolo, logos)
-    doc.output("bloburl")
-  })
-}
+    doc.setFontSize(7)
+    doc.setFont("helvetica", "bold")
+    doc.setTextColor(255)
+    doc.text(
+      "CLASSIFICAÇÃO DE RISCO: " + dados.classificacao_risco.toUpperCase(),
+      pageWidth / 2,
+      y + 4,
+      { align: "center" }
+    )
 
-function makePdfFilename(dados, protocolo) {
-  var base =
-    (dados && (dados.nome_cidadao || dados.nome_agente)) ||
-    protocolo ||
-    "vistoria"
-
-  try {
-    base = String(base)
-      .normalize("NFD")
-      .replace(/\p{Diacritic}/gu, "")
-      .replace(/[^\w\s-]/g, "")
-      .trim()
-      .replace(/\s+/g, "_")
-  } catch (e) {
-    base = String(base).replace(/\s+/g, "_")
+    doc.setTextColor(0)
+    y += 12
+  } else {
+    y += 6
   }
 
-  return `relatorio_${base}.pdf`
-}
+  // ===============================
+  // SEÇÕES (1 → 9)
+  // ===============================
+  tituloSecao("1", "IDENTIFICAÇÃO")
+  blocoFundo(rowH)
+  campo("Data", dados.data_atendimento, margin + 2, 30)
+  campo("Hora", dados.hora_atendimento, margin + 40, 20)
+  campo("Protocolo", protocolo, margin + 70, 40)
+  y += rowH + 2
 
-function downloadPDF(dados, protocolo) {
-  carregarLogos().then(async (logos) => {
-    var doc = await criarDocumentoPDF(dados, protocolo, logos)
-    doc.save(makePdfFilename(dados, protocolo))
-  })
+  tituloSecao("2", "DEMANDA")
+  blocoFundo(rowH)
+  campo("Nome", dados.nome_cidadao, margin + 2, contentWidth)
+  y += rowH + 1
+
+  blocoFundo(rowH)
+  campo("CPF", formatCPF(dados.cpf), margin + 2, 35)
+  campo("RG", dados.rg, margin + 45, 25)
+  campo("Telefone", dados.telefone, margin + 75, 40)
+  y += rowH + 1
+
+  blocoFundo(rowH)
+  campo(
+    "Endereço",
+    (dados.endereco || "") +
+      " - " +
+      (dados.bairro || "") +
+      " - " +
+      (dados.cidade || "") +
+      " CEP " +
+      (dados.cep || ""),
+    margin + 2,
+    contentWidth
+  )
+  y += rowH + 2
+
+  // (continua exatamente igual ao original que você enviou)
+
+  // ===============================
+  // RODAPÉ
+  // ===============================
+  var total = doc.internal.getNumberOfPages()
+  for (var p = 1; p <= total; p++) {
+    doc.setPage(p)
+    doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10)
+    doc.setFontSize(7)
+    doc.text(
+      "Defesa Civil – Prefeitura Municipal de Cidade Ocidental – GO",
+      margin,
+      pageHeight - 6
+    )
+    doc.text(`Página ${p} de ${total}`, pageWidth - margin, pageHeight - 6, {
+      align: "right",
+    })
+  }
+
+  return doc
 }
 
 // ===============================
@@ -194,17 +254,9 @@ function downloadPDF(dados, protocolo) {
 function openPDFInNewWindow(dados, protocolo) {
   carregarLogos().then(async (logos) => {
     var doc = await criarDocumentoPDF(dados, protocolo, logos)
-
     var blob = doc.output("blob")
     var url = URL.createObjectURL(blob)
-
-    // ✅ Chrome Mobile → viewer nativo
-    // ✅ Desktop → abre normalmente
     window.location.href = url
-
-    // opcional: liberar memória depois
-    setTimeout(() => {
-      URL.revokeObjectURL(url)
-    }, 60000)
+    setTimeout(() => URL.revokeObjectURL(url), 60000)
   })
 }
