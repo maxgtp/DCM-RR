@@ -445,7 +445,7 @@ async function criarDocumentoPDF(dados, protocolo, logos) {
     doc.line(margin, pageHeight - 10, pageWidth - margin, pageHeight - 10)
     doc.setFontSize(7)
     doc.text(
-      "Defesa Civil – Prefeitura Municipal de Cidade Ocidental – GO",
+      "Superintendencia Municipal de Proteção e Defesa Civil – Secretaria Municipal de Segurança Publica e Transito",
       margin,
       pageHeight - 6
     )
@@ -1039,3 +1039,4 @@ carregarLogos().then(async (logos) => {
   criarBotaoDownload(); // Chamada da função que cria o botão
   doc.output("dataurlnewwindow")
 })
+
